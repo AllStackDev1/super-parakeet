@@ -27,7 +27,6 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ matrix.node-version }}
-        cache: 'pnpm'
-        cache-dependency-path: './pnpm-lock.yaml'
-    - run: pnpm install
-    - run: pnpm test
+        cache: 'npm'
+    - run: npm install
+    - run: npm test
