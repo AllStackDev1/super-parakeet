@@ -4,6 +4,4 @@ build
 coverage
 react-email-starter
 .babelrc
-tests/
 events/
-jest.config.ts

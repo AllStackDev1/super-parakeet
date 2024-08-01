@@ -10,6 +10,8 @@
     "db:create": "pnpm run build && NODE_ENV=development npx sequelize-cli db:create",
     "db:migrate:up": "pnpm run build && NODE_ENV=development npx sequelize-cli db:migrate",
     "db:migrate:undo": "pnpm run build && NODE_ENV=development npx sequelize-cli db:migrate:undo",
+    "test": "env NODE_ENV=test jest",
+    "test:watch": "env NODE_ENV=test jest --runInBand --watch ./src/tests/server.test.ts",
     "lint": "eslint --ignore-path .eslintignore --ext .js,.ts"
   },
   "author": "Chinedu",
