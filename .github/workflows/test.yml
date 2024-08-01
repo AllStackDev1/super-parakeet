@@ -22,10 +22,13 @@ jobs:
        run:
          working-directory: ./
     steps:
+    - name: Set Repo
+      run: echo ${{ github.repository }}
     - uses: actions/checkout@v4
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v4
       with:
+        repository: ${{ github.repository }}
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm install
