@@ -1,3 +1,4 @@
-export * from './controller.module';
-export * from './service.module';
+export * from './models.module';
+export * from './services.module';
+export * from './controllers.module';
 export * from './repositories.module';

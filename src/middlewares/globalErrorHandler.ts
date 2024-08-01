@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { AppError } from 'utils';
-import { PROD } from 'configs/env';
+import { isProd } from 'configs/env';
 import { INTERNAL_SERVER_ERROR } from 'http-status';
 
 const sendErrorDev = (err: AppError, res: Response) => {
@@ -58,7 +58,7 @@ export function globalErrorHandler(
     err = new AppError('Invalid token', 401);
   }
 
-  if (PROD) {
+  if (isProd) {
     return sendErrorProd(error || err, res);
   }
   sendErrorDev(err, res);

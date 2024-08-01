@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response, NextFunction } from 'express';
-import { ZodError, ZodObject } from 'zod';
+import { ZodEffects, ZodError, ZodIssue, ZodObject } from 'zod';
 import httpStatus from 'http-status';
 import { AppError } from 'utils';
 
-type ZodSchema = ZodObject<any>;
+type ZodSchema = ZodObject<any> | ZodEffects<ZodObject<any>>;
 
 interface BaseSchema {
   body?: ZodSchema;
@@ -25,7 +25,20 @@ interface ParamsOk extends BaseSchema {
 
 type SchemaPayload = BodyOk | QueryOk | ParamsOk;
 
-export function Validate({ body, query, params }: SchemaPayload) {
+const errorMessageBuilder = (issue: ZodIssue) => {
+  let str = '';
+  if (issue.message.toLowerCase().includes('invalid')) {
+    str = `${issue.path.join('.')} contains ${issue.message?.toLowerCase()}`;
+  }
+
+  if (issue.message.toLowerCase().includes('required')) {
+    str = `${issue.path.join('.')} is ${issue.message?.toLowerCase()}`;
+  }
+
+  return str;
+};
+
+export function Validator({ body, query, params }: SchemaPayload) {
   return function (_: any, __: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
@@ -47,10 +60,7 @@ export function Validate({ body, query, params }: SchemaPayload) {
         return originalMethod.call(this, req, res, next);
       } catch (error: any) {
         if (error instanceof ZodError) {
-          const errorMessages = error.errors.map(
-            (issue: any) =>
-              `${issue.path.join('.')} is ${issue.message?.toLowerCase()}`,
-          );
+          const errorMessages = error.errors.map(errorMessageBuilder);
           throw new AppError(
             'Invalid payload',
             httpStatus.BAD_REQUEST,

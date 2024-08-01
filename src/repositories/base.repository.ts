@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { injectable } from 'inversify';
 import {
   Model,
@@ -12,7 +11,7 @@ import { MakeNullishOptional } from 'sequelize/lib/utils';
 export type ModelType<T extends Model<T>> = ModelStatic<T>;
 
 @injectable()
-export class BaseRepository<T extends Model> implements IRepository<T> {
+export class BaseRepository<K, T extends Model> {
   constructor(protected model: ModelType<T>) {}
 
   public async create(payload: MakeNullishOptional<T['_creationAttributes']>) {
@@ -37,7 +36,7 @@ export class BaseRepository<T extends Model> implements IRepository<T> {
 
   public async update(
     id: WhereAttributeHashValue<Attributes<T>[string]>,
-    payload: MakeNullishOptional<T['_creationAttributes']>,
+    payload: Partial<K>,
   ) {
     return await this.model.update(payload, { where: { id: id } });
   }
@@ -45,14 +44,4 @@ export class BaseRepository<T extends Model> implements IRepository<T> {
   public async delete(id: WhereAttributeHashValue<Attributes<T>[string]>) {
     return await this.model.destroy({ where: { id } });
   }
-}
-
-export interface IRepository<T extends Model<any, any>> {
-  create(payload: MakeNullishOptional<T['_creationAttributes']>): Promise<T>;
-  getAll(): Promise<T[]>;
-  getById(id: string): Promise<T | null>;
-  getOne(query: WhereOptions<Attributes<T>>): Promise<T | null>;
-  query(query: WhereOptions<Attributes<T>>): Promise<T[]>;
-  update(id: any, payload: any): Promise<[affectedCount: number]>;
-  delete(id: any): Promise<number>;
 }

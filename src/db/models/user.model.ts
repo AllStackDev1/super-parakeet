@@ -3,30 +3,50 @@ import {
   Model,
   DataTypes,
   InferAttributes,
-  InferCreationAttributes,
   CreationOptional,
 } from 'sequelize';
+import { decorate, injectable } from 'inversify';
 import sequelize from './connection';
 
-export class UserModel extends Model<IUserModel, IUserModelDTO> {
-  declare id: CreationOptional<string>;
-  //declare userType: string[];
-  declare firstName: string;
-  declare lastName: string;
+decorate(injectable(), Model);
+
+@injectable()
+export class UserModel extends Model<UserModelDto> {
   declare email: string;
+  declare lastName: string;
   declare password: string;
+  declare firstName: string;
+  declare userType: '0' | '1' | '2';
+  declare id?: CreationOptional<string>;
+  declare createdAt?: CreationOptional<string>;
+  declare updatedAt?: CreationOptional<string>;
+  declare deletedAt?: CreationOptional<string>;
+  declare dateOfBirth?: CreationOptional<Date>;
   /* static associate(models) {
       // define association here
     } */
+
+  getFullname() {
+    return this.firstName + ' ' + this.lastName;
+  }
+
+  getAge() {
+    if (!this.dateOfBirth) {
+      return 0;
+    }
+    const birthYear = new Date(this.dateOfBirth).getFullYear();
+    const currentYear = new Date().getFullYear();
+    return currentYear - birthYear;
+  }
 }
+
 UserModel.init(
   {
-    // userType: dataType.ENUM,
     id: {
-      type: DataTypes.UUIDV4,
+      allowNull: false,
       primaryKey: true,
       defaultValue: UUIDV4,
-      allowNull: false,
+      type: DataTypes.UUID,
     },
     firstName: {
       type: DataTypes.STRING,
@@ -41,13 +61,31 @@ UserModel.init(
       allowNull: false,
       unique: true,
     },
+    userType: {
+      type: DataTypes.ENUM('0', '1', '2'),
+    },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    dateOfBirth: {
+      allowNull: false,
+      type: DataTypes.DATE,
+    },
+    createdAt: {
+      allowNull: false,
+      type: DataTypes.DATE,
+    },
+    updatedAt: {
+      allowNull: false,
+      type: DataTypes.DATE,
+    },
+    deletedAt: {
+      allowNull: false,
+      type: DataTypes.DATE,
+    },
   },
-  { sequelize, modelName: 'Users' },
+  { sequelize, paranoid: true, freezeTableName: true, modelName: 'Users' },
 );
 
-export interface IUserModel extends InferAttributes<UserModel> {}
-export interface IUserModelDTO extends InferCreationAttributes<UserModel> {}
+export interface UserModelDto extends InferAttributes<UserModel> {}

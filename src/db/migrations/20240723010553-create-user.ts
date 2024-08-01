@@ -11,9 +11,9 @@ export default {
         primaryKey: true,
         type: Sequelize.UUID,
       },
-      /*      userType: {
-        type: Sequelize.ENUM,
-      }, */
+      userType: {
+        type: Sequelize.ENUM('0', '1', '2'),
+      },
       firstName: {
         type: Sequelize.STRING,
       },
@@ -22,9 +22,14 @@ export default {
       },
       email: {
         type: Sequelize.STRING,
+        unique: true,
       },
       password: {
         type: Sequelize.STRING,
+      },
+      dateOfBirth: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
       createdAt: {
         allowNull: false,
@@ -33,6 +38,10 @@ export default {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE,
+      },
+      deletedAt: {
+        allowNull: false,
+        type: DataTypes.DATE,
       },
     });
   },

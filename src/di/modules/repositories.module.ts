@@ -1,13 +1,13 @@
 import { ContainerModule, interfaces } from 'inversify';
-import { UserRepository, IRepository } from 'repositories';
+import { UserRepository } from 'repositories';
 
 import { TYPES } from 'di/types';
-import { UserModel } from 'db/models';
 
 const initializeModule = (bind: interfaces.Bind) => {
-  bind<IRepository<UserModel>>(TYPES.UserRepository).toConstantValue(
-    new UserRepository(UserModel),
-  );
+  /* bind<IRepository<UserModel>>(TYPES.UserRepository).toConstantValue(
+    new UserRepository(new UserModel()),
+  ); */
+  bind<UserRepository>(TYPES.UserRepository).to(UserRepository);
 };
 
 export const RepositoryModule = new ContainerModule(initializeModule);

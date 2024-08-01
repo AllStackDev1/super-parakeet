@@ -7,14 +7,15 @@
     "rootDir": "./src",
     "outDir": "./build",
     "baseUrl": "./src",
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
     "moduleResolution": "Node16",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "types": ["jest", "reflect-metadata"],
+    "types": ["jest", "@types/jest", "reflect-metadata"],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "*.d.ts", "src/**/*.js"],
-  "exclude": ["node_modules/", "build/"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules/", "build/", "src/tests/"]
 }

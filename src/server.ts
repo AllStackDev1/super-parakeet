@@ -1,13 +1,9 @@
-// if (process.env.NODE_ENV === 'production') {
-//   require('module-alias/register');
-// }
 import 'reflect-metadata';
-import { container } from 'di/container';
-import { App } from 'app';
-
-const app = container.getInjector(App);
+import { Container } from 'di/container';
 
 (async () => {
+  const container = new Container();
+  const app = container.getApp();
   await app.initialize();
   app.start();
 })();

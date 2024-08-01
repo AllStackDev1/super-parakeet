@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Express,
   Request,
@@ -7,27 +6,23 @@ import {
   RequestHandler,
 } from 'express';
 
-import { Container } from 'di/container';
 import { catchAsync } from 'utils';
+import { AuthController, UserController } from 'controllers';
+
+type IController = AuthController | UserController;
 
 type RouteHandler = Map<keyof Express, Map<string, RequestHandler[]>>;
 
-export function defineRoutes(
-  controllers: any[],
-  app: Express,
-  container: Container,
-) {
+export function defineRoutes(controllers: IController[], app: Express) {
   for (const controller of controllers) {
-    const Controller: any = container.getInjector(controller);
-
     const routeHandlers: RouteHandler = Reflect.getMetadata(
       'routeHandlers',
-      Controller,
+      controller,
     );
 
     const controllerPath: string = Reflect.getMetadata(
       'baseRoute',
-      Controller.constructor,
+      controller.constructor,
     );
     const methods = Array.from(routeHandlers.keys());
 
@@ -42,7 +37,7 @@ export function defineRoutes(
           const handlers = routes.get(routeNames[k])?.map((item) => {
             return catchAsync(
               (req: Request, res: Response, next: NextFunction) => {
-                return item.call(Controller, req, res, next);
+                return item.call(controller, req, res, next);
               },
             );
           });

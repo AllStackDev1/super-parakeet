@@ -1,11 +1,11 @@
 import helmet from 'helmet';
 import http from 'node:http';
 import express from 'express';
-import { injectable } from 'inversify';
+import { inject, injectable } from 'inversify';
 import { NOT_FOUND, OK } from 'http-status';
 
 import 'configs/logger';
-import { serverConfig, TEST } from 'configs/env';
+import { serverConfig, isTest } from 'configs/env';
 
 import connection from 'db/models/connection';
 
@@ -17,18 +17,24 @@ import {
 } from 'middlewares';
 import { catchAsync, AppError } from 'utils';
 
-import { container } from 'di/container';
 import { AuthController, UserController } from 'controllers';
+import { TYPES } from 'di/types';
 
 @injectable()
 export class App {
-  private app = express();
+  public app = express();
   private httpServer: ReturnType<typeof http.createServer> | undefined;
   private isInitialized: boolean = false;
 
-  public async initialize() {
-    await this.syncModelToDatabas();
+  constructor(
+    @inject(TYPES.AuthController)
+    private authController: AuthController,
+    @inject(TYPES.UserController)
+    private userController: UserController,
+  ) {}
 
+  public async initialize() {
+    await this.syncModelToDatabase();
     this.setExpressSettings();
     this.initializePreMiddlewares();
     this.initializeControllers();
@@ -80,7 +86,7 @@ export class App {
     this.app.get('/health-check', (_, res) => {
       return res.status(OK).json({ status: 'success', health: '100%' });
     });
-    defineRoutes([AuthController, UserController], this.app, container);
+    defineRoutes([this.authController, this.userController], this.app);
     this.app.use(
       '*',
       catchAsync(async (req) => {
@@ -92,11 +98,11 @@ export class App {
     );
   }
 
-  private async syncModelToDatabas() {
+  private async syncModelToDatabase() {
     logger.log('----------------------------------------');
     logger.log('Synchronizes the database with the defined models');
     logger.log('----------------------------------------');
-    if (TEST) {
+    if (isTest) {
       await connection.sync({ force: true });
     } else {
       await connection.sync();

@@ -1,1 +1,1 @@
-export { UserModel, IUserModel, IUserModelDTO } from './user.model';
+export * from './user.model';

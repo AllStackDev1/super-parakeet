@@ -1,4 +1,4 @@
-import { TEST } from './env';
+import { isTest } from './env';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LogFunParams = [message?: any, ...optionalParams: any[]];
@@ -57,7 +57,7 @@ export function getCallingFunction(error: Error) {
 }
 
 export function log(...params: LogFunParams) {
-  if (!TEST)
+  if (!isTest)
     console.log(
       `[${new Date().toLocaleString()}]`,
       colours.fg.magenta,
@@ -68,7 +68,7 @@ export function log(...params: LogFunParams) {
 }
 
 export function info(...params: LogFunParams) {
-  if (!TEST)
+  if (!isTest)
     console.info(
       `[${new Date().toLocaleString()}]`,
       colours.fg.cyan,
@@ -82,7 +82,7 @@ export function info(...params: LogFunParams) {
 }
 
 export function warn(...params: LogFunParams) {
-  if (!TEST)
+  if (!isTest)
     console.warn(
       `[${new Date().toLocaleString()}]`,
       colours.fg.yellow,
@@ -96,7 +96,7 @@ export function warn(...params: LogFunParams) {
 }
 
 export function error(...params: LogFunParams) {
-  if (!TEST)
+  if (!isTest)
     console.error(
       `[${new Date().toLocaleString()}]`,
       colours.fg.red,

@@ -1,32 +1,35 @@
-import { interfaces, Container as InversifyContainer } from 'inversify';
-import { ServiceModule, RepositoryModule, ControllerModule } from './modules';
+import { Container as InversifyContainer } from 'inversify';
+
+import {
+  ModelsModule,
+  RepositoryModule,
+  ServicesModule,
+  ControllersModule,
+} from './modules';
 import { App } from 'app';
 
 export class Container {
-  private _container: InversifyContainer = new InversifyContainer({
+  private _container = new InversifyContainer({
     defaultScope: 'Singleton',
   });
-
-  protected get container(): InversifyContainer {
-    return this._container;
-  }
 
   constructor() {
     this.register();
   }
 
-  public getInjector<T>(id: interfaces.ServiceIdentifier<T>) {
-    return this.container.get<T>(id);
+  protected get container() {
+    return this._container;
   }
 
-  private register(): void {
-    this._container.load(RepositoryModule);
-    this._container.load(ServiceModule);
-    this._container.load(ControllerModule);
+  public getApp() {
+    return this.container.get(App);
+  }
 
+  private register() {
+    this._container.load(ModelsModule);
+    this._container.load(RepositoryModule);
+    this._container.load(ServicesModule);
+    this._container.load(ControllersModule);
     this._container.bind<App>(App).toSelf();
   }
 }
-
-const container = new Container();
-export { container };

@@ -1,11 +1,11 @@
 import { injectable, inject } from 'inversify';
 
-import { UserModel } from 'db/models';
-import { BaseRepository } from './base.repository';
 import { TYPES } from 'di/types';
+import { UserModel, UserModelDto } from 'db/models';
+import { BaseRepository } from './base.repository';
 
 @injectable()
-export default class extends BaseRepository<UserModel> {
+export class UserRepository extends BaseRepository<UserModelDto, UserModel> {
   constructor(@inject(TYPES.UserModel) protected model: typeof UserModel) {
     super(model);
   }

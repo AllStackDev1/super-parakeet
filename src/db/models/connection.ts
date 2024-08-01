@@ -1,9 +1,6 @@
 import { Sequelize } from 'sequelize';
-import { dbConfig } from '../../configs/env';
+import { dbConfig } from 'configs/env';
 
-const sequelize = new Sequelize({
-  ...dbConfig,
-  dialect: 'postgres',
-});
+const sequelize = new Sequelize(dbConfig);
 
 export default sequelize;
