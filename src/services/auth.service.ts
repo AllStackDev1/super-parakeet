@@ -1,4 +1,3 @@
-import bcrypt from 'bcrypt';
 import {
   CONFLICT,
   BAD_REQUEST,
@@ -6,20 +5,21 @@ import {
   INTERNAL_SERVER_ERROR,
 } from 'http-status';
 import { injectable, inject } from 'inversify';
+import { CacheUpdate } from '@type-cacheable/core';
+import { useAdapter } from '@type-cacheable/ioredis-adapter';
 
 import { TYPES } from 'di/types';
-import { AppError } from 'utils';
 import { UserModelDto } from 'db/models';
-import { HASHING_SALT } from 'configs/env';
+import { AppError, exclude } from 'utils';
+import { BaseService } from './base.service';
 import { UserRepository } from 'repositories';
+import { RedisClient } from 'configs/redis.config';
 import type {
   EmailSchema,
   LoginSchema,
   SignupSchema,
   ResetPasswordSchema,
 } from 'validators';
-
-import { BaseService } from './base.service';
 
 export interface IAuthService {
   register(dto: SignupSchema): Promise<
@@ -29,7 +29,9 @@ export interface IAuthService {
         email: string;
       }
   >;
-  authenticate(dto: LoginSchema): Promise<UserModelDto | undefined>;
+  authenticate(
+    dto: LoginSchema,
+  ): Promise<{ user: UserModelDto; token: string }>;
   sendPasswordResetEmail(payload: EmailSchema): Promise<{ message: string }>;
   resetPassword(payload: ResetPasswordSchema): Promise<{ message: string }>;
 }
@@ -39,23 +41,22 @@ export class AuthService extends BaseService implements IAuthService {
   constructor(
     @inject(TYPES.UserRepository)
     private repo: UserRepository,
+    @inject(TYPES.RedisClient)
+    redisClient: RedisClient,
   ) {
     super();
+
+    useAdapter(
+      redisClient.get({
+        enableOfflineQueue: true,
+      }),
+      false,
+    );
 
     this.on('user_login', async () => {});
     this.on('new_sign_up', async () => {});
     this.on('user_failed_login', async () => {});
   }
-
-  private async hashPassword(password: string) {
-    return await bcrypt.hash(password, HASHING_SALT);
-  }
-
-  private async isPasswordMatch(p1: string, p2: string) {
-    return await bcrypt.compare(p1, p2);
-  }
-
-  // private generateAuthToken(u: UserModelDto) {}
 
   private async validateJWT(token: string) {
     if (token) return token;
@@ -63,34 +64,34 @@ export class AuthService extends BaseService implements IAuthService {
     return null;
   }
 
+  @CacheUpdate({
+    cacheKey: (_, __, result) => result.id,
+    cacheKeysToClear: ['users'],
+  })
   public async register(dto: SignupSchema) {
-    const isEmailTaken = await this.repo.getOne({ email: dto.email });
-    if (isEmailTaken) {
-      return new AppError('A user with this email already exist', CONFLICT);
+    let user = await this.repo.getOne({ email: dto.email });
+    if (user) {
+      throw new AppError('A user with this email already exist', CONFLICT);
     }
-
-    const password = await this.hashPassword(dto.password);
-
-    const user = await this.repo.create({ ...dto, password });
-
-    return { name: `${user.firstName} ${user.lastName}`, email: user.email };
+    user = await this.repo.create(dto);
+    return { name: user.getFullname(), email: user.email };
   }
 
   public async authenticate(dto: LoginSchema) {
     const user = await this.repo.getOne({ email: dto.email });
-    if (user) {
-      if (await this.isPasswordMatch(dto.password, user.password)) {
-        /* const token = this.tokenService.create(user);
-        const userDto = this.modelToDto(user);
-        return {
-          tokenInfo: token,
-          user: userDto,
-        }; */
-
-        return user;
-      }
+    if (user && (await user.isPasswordMatch(dto.password))) {
+      const token = user.generateAuthToken('auth');
+      return {
+        user: exclude(user.toJSON(), [
+          'password',
+          'updatedAt',
+          'createdAt',
+          'deletedAt',
+        ]),
+        token,
+      };
     }
-    new AppError('Invalid email or password', BAD_REQUEST);
+    throw new AppError('Invalid email or password', BAD_REQUEST);
   }
 
   public async sendPasswordResetEmail(payload: EmailSchema) {
@@ -107,8 +108,9 @@ export class AuthService extends BaseService implements IAuthService {
   public async resetPassword(payload: ResetPasswordSchema) {
     const id = await this.validateJWT(payload.token);
     if (id) {
-      const password = await this.hashPassword(payload.newPassword);
-      const [no] = await this.repo.update(id, { password });
+      const [no] = await this.repo.updateById(id, {
+        password: payload.newPassword,
+      });
       if (no) {
         return { message: 'Your password has been succesfully updated.' };
       }

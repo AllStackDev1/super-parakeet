@@ -25,17 +25,24 @@ interface ParamsOk extends BaseSchema {
 
 type SchemaPayload = BodyOk | QueryOk | ParamsOk;
 
-const errorMessageBuilder = (issue: ZodIssue) => {
-  let str = '';
-  if (issue.message.toLowerCase().includes('invalid')) {
-    str = `${issue.path.join('.')} contains ${issue.message?.toLowerCase()}`;
+const errorMessageBuilder = (
+  issue: ZodIssue,
+): string | Record<string, string | number | (string | number)[]> => {
+  const message = issue.message.toLowerCase();
+
+  if (message.includes('one of')) {
+    return { message: issue.message, path: issue.path };
   }
 
-  if (issue.message.toLowerCase().includes('required')) {
-    str = `${issue.path.join('.')} is ${issue.message?.toLowerCase()}`;
+  if (message.includes('invalid')) {
+    return `${issue.path} contains ${message}`;
   }
 
-  return str;
+  if (message.includes('required')) {
+    return `${issue.path} is ${message}`;
+  }
+
+  return '';
 };
 
 export function Validator({ body, query, params }: SchemaPayload) {

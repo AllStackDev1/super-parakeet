@@ -18,8 +18,8 @@ export class BaseRepository<K, T extends Model> {
     return await this.model.create(payload);
   }
 
-  public async getAll() {
-    return await this.model.findAll();
+  public async getAll(query: WhereOptions<Attributes<T>> = {}) {
+    return await this.model.findAll({ where: query });
   }
 
   public async getById(id: string) {
@@ -30,18 +30,16 @@ export class BaseRepository<K, T extends Model> {
     return await this.model.findOne({ where: query });
   }
 
-  public async query(query: WhereOptions<Attributes<T>>) {
-    return await this.model.findAll({ where: query });
+  public async updateById(id: string, payload: Partial<K>) {
+    return await this.model.update(payload, {
+      where: { id: id as WhereAttributeHashValue<Attributes<T>[string]> },
+    });
   }
 
-  public async update(
-    id: WhereAttributeHashValue<Attributes<T>[string]>,
-    payload: Partial<K>,
-  ) {
-    return await this.model.update(payload, { where: { id: id } });
-  }
-
-  public async delete(id: WhereAttributeHashValue<Attributes<T>[string]>) {
-    return await this.model.destroy({ where: { id } });
+  public async deleteById(id: string, forceDel?: boolean) {
+    return await this.model.destroy({
+      where: { id: id as WhereAttributeHashValue<Attributes<T>[string]> },
+      force: forceDel,
+    });
   }
 }

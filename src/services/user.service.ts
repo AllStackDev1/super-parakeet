@@ -1,24 +1,26 @@
-import { BAD_REQUEST, NOT_FOUND } from 'http-status';
+import qs from 'node:querystring';
 import { injectable, inject } from 'inversify';
+import { BAD_REQUEST, NOT_FOUND } from 'http-status';
+import { useAdapter } from '@type-cacheable/ioredis-adapter';
+import { Cacheable, CacheClear, CacheUpdate } from '@type-cacheable/core';
 
 import { TYPES } from 'di/types';
 import { UserModel, UserModelDto } from 'db/models';
-import { UserRepository } from 'repositories';
+import { AppError, exclude } from 'utils';
 import { BaseService } from './base.service';
-import { AppError } from 'utils';
+import { UserRepository } from 'repositories';
+import { RedisClient } from 'configs/redis.config';
 import { type UpdateSchema, type QuerySchema } from 'validators';
 
 export interface IUserService {
-  getAllUsers(): Promise<{ data: UserModel[]; message: string }>;
-  getUserById(id: string): Promise<UserModel | null>;
-  getOneUser(
-    query: Pick<UserModelDto, 'id' | 'email'>,
-  ): Promise<UserModel | null>;
-  getUsersBasedOnQuery(
+  getAllUsers(): Promise<{ data: UserModelDto[]; message: string }>;
+  getUserById(id: string): Promise<UserModelDto | null>;
+  getUsersByQuery(
     query: QuerySchema,
-  ): Promise<{ data: UserModel[]; message: string }>;
-  updateUser(id: string, payload: UpdateSchema): Promise<UserModel | null>;
-  softDeleteUserById(id: string): Promise<number>;
+  ): Promise<{ data: UserModelDto[]; message: string }>;
+  update(id: string, payload: UpdateSchema): Promise<UserModelDto | null>;
+  softDeleteById(id: string): Promise<number>;
+  forceDeleteById(id: string): Promise<number>;
 }
 
 @injectable()
@@ -26,49 +28,82 @@ export class UserService extends BaseService implements IUserService {
   constructor(
     @inject(TYPES.UserRepository)
     protected repo: UserRepository,
+    @inject(TYPES.RedisClient)
+    redisClient: RedisClient,
   ) {
     super();
+    useAdapter(
+      redisClient.get({
+        enableOfflineQueue: true,
+      }),
+      false,
+      { ttlSeconds: 3600 },
+    );
   }
 
+  private dto(user: UserModel) {
+    const keys = [
+      ...new Set<keyof UserModelDto>([
+        !user.dateOfBirth ? 'dateOfBirth' : 'password',
+        !user.deletedAt ? 'deletedAt' : 'password',
+        'password',
+      ]),
+    ];
+    return exclude(user.toJSON(), keys);
+  }
+
+  @Cacheable({ cacheKey: 'users' })
   public async getAllUsers() {
     const users = await this.repo.getAll();
     // run some formating and all need data manipulation
-    return { data: users, message: `${users.length} users found.` };
+    return {
+      data: users.map(this.dto),
+      message: `${users.length} user${users.length > 1 ? 's' : ''} found.`,
+    };
   }
 
-  public async getUsersBasedOnQuery(query: QuerySchema) {
-    const users = await this.repo.query(query);
+  @Cacheable({
+    cacheKey: (args) => qs.stringify(args[0]),
+  })
+  public async getUsersByQuery(query: QuerySchema) {
+    const users = await this.repo.getAll(query);
     // run some formating and all need data manipulation
-    return { data: users, message: `${users.length} users found.` };
+    return {
+      data: users.map(this.dto),
+      message: `${users.length} user${users.length > 1 ? 's' : ''} found.`,
+    };
   }
 
+  @Cacheable({ cacheKey: ([id]) => id })
   public async getUserById(id: string) {
     // run some formating and all need data manipulation
     const user = await this.repo.getById(id);
-    if (user) return user;
+    if (user) return this.dto(user);
     throw new AppError('No user found', NOT_FOUND);
   }
 
-  public async getOneUser(
-    query: { id: string; email: string } | { id?: string; email?: string },
-  ) {
-    const users = await this.repo.getOne(query);
-
-    // run some formating and all need data manipulation
-    return users;
-  }
-
-  public async updateUser(id: string, payload: UpdateSchema) {
-    const [updatedRows] = await this.repo.update(id, payload);
+  @CacheUpdate({
+    cacheKey: (args, ctx, result) => result.id,
+    cacheKeysToClear: () => ['users'],
+  })
+  public async update(id: string, payload: UpdateSchema) {
+    const [updatedRows] = await this.repo.updateById(id, payload);
 
     if (updatedRows) {
-      return await this.getUserById(id);
+      const user = await this.repo.getById(id);
+      if (user) return this.dto(user);
     }
     throw new AppError('Unable to update, please try again.', BAD_REQUEST);
   }
 
-  public async softDeleteUserById(id: string) {
+  @CacheClear({ cacheKey: ([id]) => [id, 'users'] })
+  public async softDeleteById(id: string) {
     // run some events, add to queue for possible full on deletions after 30days
-    return this.repo.delete(id);
+    return this.repo.deleteById(id);
+  }
+
+  @CacheClear({ cacheKey: ([id]) => [id, 'users'] })
+  public async forceDeleteById(id: string) {
+    return this.repo.deleteById(id, true);
   }
 }

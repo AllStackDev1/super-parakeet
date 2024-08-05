@@ -1,11 +1,17 @@
-import { OK } from 'http-status';
 import { Request, Response } from 'express';
 import { injectable, inject } from 'inversify';
+import { ACCEPTED, NO_CONTENT, OK } from 'http-status';
 
+import {
+  QuerySchema,
+  ParamsWithId,
+  UpdateSchema,
+  DeleteTypeSchema,
+} from 'validators';
 import { TYPES } from 'di/types';
+import { auth } from 'middlewares';
 import { IUserService } from 'services';
 import { Route, Controller, Validator } from 'decorators';
-import { miscSchema, UpdateSchema, QuerySchema } from 'validators';
 
 @Controller('/users')
 @injectable()
@@ -15,41 +21,48 @@ export class UserController {
     private service: IUserService,
   ) {}
 
-  @Route('get')
+  @Route('get', '', auth)
   async getAll(_: Request, res: Response) {
     return res.status(OK).json(await this.service.getAllUsers());
   }
 
-  @Route('get', '/:id')
-  @Validator({ params: miscSchema('id') })
-  async getById(req: Request, res: Response) {
+  @Route('get', '/search', auth)
+  @Validator({ query: QuerySchema })
+  async query(req: Request<[], [], [], QuerySchema>, res: Response) {
+    return res.status(OK).json(await this.service.getUsersByQuery(req.query));
+  }
+
+  @Route('get', '/:id', auth)
+  @Validator({ params: ParamsWithId })
+  async getById(req: Request<ParamsWithId>, res: Response) {
     return res.status(OK).json(await this.service.getUserById(req.params.id));
   }
 
-  @Route('get', '/search')
-  @Validator({ query: QuerySchema })
-  async query(req: Request, res: Response) {
-    return res
-      .status(OK)
-      .json(await this.service.getUsersBasedOnQuery(req.query));
-  }
-
-  @Route('patch')
-  @Validator({ body: UpdateSchema, params: miscSchema('id') })
-  async update(req: Request, res: Response) {
+  @Route('patch', '/:id', auth)
+  @Validator({ body: UpdateSchema, params: ParamsWithId })
+  async update(req: Request<ParamsWithId, [], UpdateSchema>, res: Response) {
     return res.status(OK).json({
       message: 'User details updated successfully',
-      data: await this.service.updateUser(req.params.id, req.body),
+      data: await this.service.update(req.params.id, req.body),
     });
   }
 
-  @Route('delete', '/:id')
-  @Validator({ params: miscSchema('id') })
-  async delete(req: Request, res: Response) {
-    await this.service.softDeleteUserById(req.params.id);
-    return res.status(OK).json({
-      message:
-        'Account deleted succesfully. Account will be parmantly deleted in 30day',
-    });
+  @Route('delete', '/:id', auth)
+  @Validator({ params: ParamsWithId, body: DeleteTypeSchema })
+  async delete(
+    req: Request<ParamsWithId, [], DeleteTypeSchema>,
+    res: Response,
+  ) {
+    if (req.body.type === 'soft') {
+      await this.service.softDeleteById(req.params.id);
+      return res.status(ACCEPTED).json({
+        message: 'Account will be parmantly deleted in 30day',
+      });
+    } else {
+      await this.service.forceDeleteById(req.params.id);
+      return res.status(NO_CONTENT).json({
+        message: 'Account deleted succesfully.',
+      });
+    }
   }
 }
