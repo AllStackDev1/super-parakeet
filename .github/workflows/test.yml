@@ -26,10 +26,9 @@ env:
   REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
   COOKIES_SECRET_KEY: ${{ secrets.COOKIES_SECRET_KEY }}
 
-
 jobs:
   cache-run-test:
-    environment: test
+    environment: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -46,6 +45,16 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+      - name: Display Variables
+        run:
+          echo "REDIS_HOST - ${{ env.REDIS_HOST }}" 
+          echo "REDIS_PORT - ${{ env.REDIS_PORT }}" 
+          echo "REDIS_USER - ${{ env.REDIS_USER }}" 
+          echo "REDIS_PASSWORD - ${{ env.REDIS_PASSWORD }}" 
+          echo "DB_HOST - ${{ env.DB_HOST }}" 
+          echo "DB_PORT - ${{ env.DB_PORT }}" 
+          echo "DB_NAME - ${{ env.DB_NAME }}" 
+          echo "DB_PASSWORD - ${{ env.DB_PASSWORD }}" 
       - name: Run lint
         run: pnpm lint
       - name: Run tests
