@@ -1,6 +1,6 @@
 export const TYPES = {
   // Models
-  UserModel: Symbol.for('UserModel'),
+  UserModel: Symbol.for('Users'),
 
   // Respositories
   UserRepository: Symbol.for('UserRepository'),
@@ -12,4 +12,9 @@ export const TYPES = {
   // Controllers
   AuthController: Symbol.for('AuthController'),
   UserController: Symbol.for('UserController'),
+
+  // Thirdparty
+  RedisClient: Symbol.for('RedisClient'),
+  SessionHandler: Symbol.for('SessionHandler'),
+  RateLimitHandler: Symbol.for('RateLimitHandler'),
 };

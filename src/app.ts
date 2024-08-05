@@ -1,28 +1,33 @@
 import helmet from 'helmet';
 import http from 'node:http';
 import express from 'express';
-import { inject, injectable } from 'inversify';
+import cookieParser from 'cookie-parser';
 import { NOT_FOUND, OK } from 'http-status';
+import { inject, injectable } from 'inversify';
 
-import 'configs/logger';
-import { serverConfig, isTest } from 'configs/env';
+import 'configs/logger.config';
+
+import { serverConfig, isTest, cookiesConfig } from 'configs/env.config';
 
 import connection from 'db/models/connection';
 
+import { catchAsync, AppError } from 'utils';
 import {
   corsHandler,
   defineRoutes,
   loggerHandler,
+  SessionHandler,
+  RateLimitHandler,
   globalErrorHandler,
 } from 'middlewares';
-import { catchAsync, AppError } from 'utils';
+
+import { TYPES } from 'di/types';
 
 import { AuthController, UserController } from 'controllers';
-import { TYPES } from 'di/types';
 
 @injectable()
 export class App {
-  public app = express();
+  public _express = express();
   private httpServer: ReturnType<typeof http.createServer> | undefined;
   private isInitialized: boolean = false;
 
@@ -31,6 +36,10 @@ export class App {
     private authController: AuthController,
     @inject(TYPES.UserController)
     private userController: UserController,
+    @inject(TYPES.RateLimitHandler)
+    private rateLimitHandler: RateLimitHandler,
+    @inject(TYPES.SessionHandler)
+    private sessionHandler: SessionHandler,
   ) {}
 
   public async initialize() {
@@ -49,7 +58,7 @@ export class App {
     logger.log('----------------------------------------');
     logger.log('Starting Server');
     logger.log('----------------------------------------');
-    this.httpServer = http.createServer(this.app);
+    this.httpServer = http.createServer(this._express);
     this.httpServer.listen(serverConfig.port, () => {
       logger.log('----------------------------------------');
       logger.log(`Server started on ${serverConfig.host}:${serverConfig.port}`);
@@ -58,6 +67,7 @@ export class App {
   }
 
   public stop(callback: (err?: Error) => void) {
+    connection.close();
     this.httpServer?.close(callback);
   }
 
@@ -65,29 +75,32 @@ export class App {
     logger.log('----------------------------------------');
     logger.log('Initializing API');
     logger.log('----------------------------------------');
-    this.app.use(helmet());
-    this.app.use(express.urlencoded({ extended: true }));
-    this.app.use(express.json());
-    this.app.disable('x-powered-by');
+    this._express.use(helmet());
+    this._express.use(cookieParser(cookiesConfig.secretKey));
+    this._express.use(express.urlencoded({ extended: true }));
+    this._express.use(express.json());
+    this._express.disable('x-powered-by');
   }
 
   private initializePreMiddlewares() {
     logger.log('----------------------------------------');
-    logger.log('Logging & Configuration');
+    logger.log('Configuration Pre Middlewares');
     logger.log('----------------------------------------');
-    this.app.use(loggerHandler);
-    this.app.use(corsHandler);
+    this._express.use(corsHandler);
+    this._express.use(this.sessionHandler.handler);
+    this._express.use(this.rateLimitHandler.handler);
+    this._express.use(loggerHandler);
   }
 
   private initializeControllers() {
     logger.log('----------------------------------------');
     logger.log('Define Routes & Controllers');
     logger.log('----------------------------------------');
-    this.app.get('/health-check', (_, res) => {
+    this._express.get('/health-check', (_, res) => {
       return res.status(OK).json({ status: 'success', health: '100%' });
     });
-    defineRoutes([this.authController, this.userController], this.app);
-    this.app.use(
+    defineRoutes([this.authController, this.userController], this._express);
+    this._express.use(
       '*',
       catchAsync(async (req) => {
         throw new AppError(
@@ -111,8 +124,8 @@ export class App {
 
   private initializePostMiddlewares(): void {
     logger.log('----------------------------------------');
-    logger.log('Define Global Error Handler');
+    logger.log('Configuration Post Middlewares');
     logger.log('----------------------------------------');
-    this.app.use(globalErrorHandler);
+    this._express.use(globalErrorHandler);
   }
 }

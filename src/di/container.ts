@@ -2,14 +2,15 @@ import { Container as InversifyContainer } from 'inversify';
 
 import {
   ModelsModule,
-  RepositoryModule,
   ServicesModule,
+  ThirdpartyModule,
   ControllersModule,
+  RepositoriesModule,
 } from './modules';
 import { App } from 'app';
 
 export class Container {
-  private _container = new InversifyContainer({
+  public _container = new InversifyContainer({
     defaultScope: 'Singleton',
   });
 
@@ -17,17 +18,14 @@ export class Container {
     this.register();
   }
 
-  protected get container() {
-    return this._container;
-  }
-
   public getApp() {
-    return this.container.get(App);
+    return this._container.get(App);
   }
 
   private register() {
+    this._container.load(ThirdpartyModule);
     this._container.load(ModelsModule);
-    this._container.load(RepositoryModule);
+    this._container.load(RepositoriesModule);
     this._container.load(ServicesModule);
     this._container.load(ControllersModule);
     this._container.bind<App>(App).toSelf();
