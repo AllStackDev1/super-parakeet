@@ -5,21 +5,30 @@ import { NOT_FOUND, OK } from 'http-status';
 import { TestContext } from './test.context';
 
 import { App } from 'app';
-import { AuthController, UserController } from 'controllers';
 
 describe('Server Start', () => {
-  let app: Express;
+  let app: App;
+  let express: Express;
+
   beforeAll(async () => {
     const testContext = new TestContext();
-    testContext.mock<AuthController>(() => ({}), AuthController);
-    testContext.mock<UserController>(() => ({}), UserController);
-    const _app = testContext.get(App);
-    await _app.initialize();
-    app = _app.app;
+    app = testContext.get(App);
+    await app.initialize();
+    express = app._express;
+  });
+
+  afterAll((done) => {
+    app.stop(done);
+    done();
+  });
+
+  it('Starts and has the proper test environment', async () => {
+    expect(process.env.NODE_ENV).toBe('test');
+    expect(express).toBeDefined();
   });
 
   it('responds with a not found message', async () => {
-    const response = await request(app)
+    const response = await request(express)
       .get('/not-found')
       .set('Accept', 'application/json')
       .expect(NOT_FOUND);
@@ -30,7 +39,7 @@ describe('Server Start', () => {
   });
 
   it('responds with a health status', async () => {
-    const response = await request(app)
+    const response = await request(express)
       .get('/health-check')
       .set('Accept', 'application/json')
       .expect(OK);

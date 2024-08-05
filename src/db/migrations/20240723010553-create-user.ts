@@ -12,23 +12,27 @@ export default {
         type: Sequelize.UUID,
       },
       userType: {
+        allowNull: false,
         type: Sequelize.ENUM('0', '1', '2'),
       },
       firstName: {
+        allowNull: false,
         type: Sequelize.STRING,
       },
       lastName: {
+        allowNull: false,
         type: Sequelize.STRING,
       },
       email: {
+        allowNull: false,
         type: Sequelize.STRING,
         unique: true,
       },
       password: {
+        allowNull: false,
         type: Sequelize.STRING,
       },
       dateOfBirth: {
-        allowNull: false,
         type: DataTypes.DATE,
       },
       createdAt: {
@@ -40,7 +44,6 @@ export default {
         type: Sequelize.DATE,
       },
       deletedAt: {
-        allowNull: false,
         type: DataTypes.DATE,
       },
     });
