@@ -9,7 +9,7 @@ import 'configs/logger.config';
 
 import { serverConfig, isTest, cookiesConfig } from 'configs/env.config';
 
-import connection from 'db/models/connection';
+import sequelize from 'configs/sequelize.config';
 
 import { catchAsync, AppError } from 'utils';
 import {
@@ -67,7 +67,7 @@ export class App {
   }
 
   public stop(callback: (err?: Error) => void) {
-    connection.close();
+    sequelize.close();
     this.httpServer?.close(callback);
   }
 
@@ -116,9 +116,9 @@ export class App {
     logger.log('Synchronizes the database with the defined models');
     logger.log('----------------------------------------');
     if (isTest) {
-      await connection.sync({ force: true });
+      await sequelize.sync({ force: true });
     } else {
-      await connection.sync();
+      await sequelize.sync();
     }
   }
 

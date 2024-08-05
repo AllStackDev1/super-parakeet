@@ -1,6 +1,6 @@
 export const TYPES = {
   // Models
-  UserModel: Symbol.for('Users'),
+  UserModel: Symbol.for('UserModel'),
 
   // Respositories
   UserRepository: Symbol.for('UserRepository'),

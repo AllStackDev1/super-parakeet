@@ -9,7 +9,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { decorate, injectable } from 'inversify';
 
-import sequelize from './connection';
+import sequelize from 'configs/sequelize.config';
 import { HASHING_SALT, jwtConfig } from 'configs/env.config';
 
 decorate(injectable(), Model);

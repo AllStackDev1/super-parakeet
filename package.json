@@ -10,9 +10,9 @@
     "db:create": "pnpm run build && NODE_ENV=development npx sequelize-cli db:create",
     "db:migrate:up": "pnpm run build && NODE_ENV=development npx sequelize-cli db:migrate",
     "db:migrate:undo": "pnpm run build && NODE_ENV=development npx sequelize-cli db:migrate:undo",
-    "test": "NODE_ENV=test TEST_MODEL=mock jest",
+    "test": "NODE_ENV=test TEST_MODEL=real jest",
     "test:watch": "NODE_ENV=test TEST_MODEL=real jest --runInBand --watch .",
-    "lint": "eslint --ignore-path .eslintignore --ext .js,.ts"
+    "lint": "eslint ./src/**/*"
   },
   "author": "Chinedu",
   "license": "ISC",

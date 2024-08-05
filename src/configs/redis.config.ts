@@ -3,16 +3,14 @@ import Redis, { RedisOptions } from 'ioredis';
 import { redisConfig } from './env.config';
 import { injectable } from 'inversify';
 
-export const client = new Redis(redisConfig.url);
-
 @injectable()
 export class RedisClient {
-  private _client?: Redis;
+  private client?: Redis;
 
   get(opts?: RedisOptions) {
-    this._client = this._client || this.createClient(opts);
+    this.client = this.client || this.createClient(opts);
 
-    return this._client;
+    return this.client;
   }
 
   close() {
@@ -26,19 +24,13 @@ export class RedisClient {
     };
 
     const redisClient = new Redis({
-      host: redisConfig.host,
-      port: redisConfig.port,
-      username: redisConfig.username,
-      password: redisConfig.password,
-      showFriendlyErrorStack: true,
       retryStrategy,
-      enableOfflineQueue: false,
-      maxRetriesPerRequest: null,
-      db: 0,
+      ...redisConfig,
       ...opts,
     });
 
     redisClient.on('error', (err) => {
+      console.log(err);
       logger.error({ err }, 'Redis client connection error');
     });
 

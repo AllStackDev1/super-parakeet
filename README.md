@@ -53,7 +53,6 @@ This Express server boilerplate is built using the latest version of Node.js and
     DB_USERNAME=
     DB_PASSWORD=
 
-    REDIS_URL=
     REDIS_HOST=localhost
     REDIS_PORT=6379
     REDIS_USER=default

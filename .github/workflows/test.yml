@@ -10,15 +10,25 @@ on:
     branches: [ "main" ]
 
 env:
-  COOKIES_SECRET_KEY: ${{ secrets.COOKIES_SECRET_KEY }}
+  DB_HOST: ${{ vars.DB_HOST }}
+  DB_PORT: ${{ vars.DB_PORT }}
+  DB_NAME: ${{ vars.DB_NAME }}
+  REDIS_HOST: ${{ vars.REDIS_HOST }}
+  REDIS_PORT: ${{ vars.REDIS_PORT }}
+  REDIS_USER: ${{ vars.REDIS_USER }}
+  DB_USERNAME: ${{ vars.DB_USERNAME }}
+  HASHING_SALT: ${{ vars.HASHING_SALT }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN }}
+  COOKIES_MAX_AGE: ${{ vars.COOKIES_MAX_AGE }}
   JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
   SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
-  COOKIES_MAX_AGE: ${{ vars.COOKIES_MAX_AGE }}
-  HASHING_SALT: ${{ vars.HASHING_SALT }}
-  JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN }}
+  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+  COOKIES_SECRET_KEY: ${{ secrets.COOKIES_SECRET_KEY }}
+
 
 jobs:
-  run-test:
+  cache-run-test:
     environment: test
     runs-on: ubuntu-latest
     steps:
@@ -36,6 +46,8 @@ jobs:
           cache: 'pnpm'
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+      - name: Run lint
+        run: pnpm lint
       - name: Run tests
         run: pnpm test
         

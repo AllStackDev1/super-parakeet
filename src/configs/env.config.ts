@@ -22,14 +22,25 @@ export const dbConfig: Options = {
   database: process.env.DB_NAME!,
   username: process.env.DB_USERNAME!,
   password: process.env.DB_PASSWORD!,
+  dialectOptions: {
+    ssl: {
+      rejectUnauthorized: false,
+    },
+  },
 };
 
 export const redisConfig = {
-  url: process.env.REDIS_URL!,
   host: process.env.REDIS_HOST!,
   port: +process.env.REDIS_PORT!,
   username: process.env.REDIS_USER!,
   password: process.env.REDIS_PASSWORD!,
+  showFriendlyErrorStack: true,
+  enableOfflineQueue: false,
+  maxRetriesPerRequest: null,
+  tls: {
+    rejectUnauthorized: false,
+  },
+  db: 0,
 };
 
 export const jwtConfig = {
