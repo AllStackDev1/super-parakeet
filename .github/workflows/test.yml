@@ -9,25 +9,31 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  COOKIES_SECRET_KEY: ${{ secrets.COOKIES_SECRET_KEY }}
+  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+  COOKIES_MAX_AGE: ${{ vars.COOKIES_MAX_AGE }}
+  HASHING_SALT: ${{ vars.HASHING_SALT }}
+  JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN }}
+
 jobs:
-  cache-and-install:
+  run-test:
+    environment: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           version: 8
           run_install: false
-
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
-
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
       - name: Run tests
