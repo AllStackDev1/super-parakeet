@@ -5,7 +5,7 @@ import { mockModel } from 'tests/test.model';
 
 import { TEST_MODEL } from 'configs/env.config';
 
-describe('UserModel Test', () => {
+describe('User Model Test', () => {
   let userModelMock: typeof UserModel;
   const user = {
     userType: '1',

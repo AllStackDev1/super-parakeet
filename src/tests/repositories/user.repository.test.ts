@@ -30,7 +30,7 @@ describe.only('User Repository Test', () => {
     );
   });
 
-  it('shows that an instance of UserModel exist', async () => {
+  it('shows that an instance of user model exist', async () => {
     expect(userRepositoryMock).toBeDefined();
   });
 

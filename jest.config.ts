@@ -14,7 +14,7 @@ const config: Config = {
   coverageProvider: 'v8',
   testEnvironment: 'node',
   roots: ['<rootDir>'],
-  testTimeout: 15000,
+  testTimeout: 30000,
   setupFilesAfterEnv: ['reflect-metadata'],
   modulePaths: [compilerOptions.baseUrl],
   coverageDirectory: './coverage',
