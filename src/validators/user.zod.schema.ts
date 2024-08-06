@@ -20,10 +20,7 @@ export const SignupSchema = z.object({
 export type SignupSchema = z.infer<typeof SignupSchema>;
 
 export const LoginSchema = z.object({
-  lastName: z.string(),
-  firstName: z.string(),
   email: z.string().email(),
-  userType: z.enum(['0', '1', '2']),
   password: z
     .string()
     .min(6)
@@ -69,12 +66,13 @@ export const UpdateSchema = z
   .object({
     lastName: z.string().optional(),
     firstName: z.string().optional(),
-    userType: z.enum(['0', '1', '2']).optional(),
+    // userType: z.enum(['0', '1', '2']).optional(),
     dateOfBirth: z.date().optional(),
   })
   .partial()
-  .refine((data) => isEmpty(data), {
+  .refine((data) => !isEmpty(data), {
     message: 'One of the fields must be defined',
+    path: ['firstName', 'lastName', 'dateOfBirth'],
   });
 
 export type UpdateSchema = z.infer<typeof UpdateSchema>;

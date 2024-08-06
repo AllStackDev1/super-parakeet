@@ -15,10 +15,11 @@ This Express server boilerplate is built using the latest version of Node.js and
 - **Error Handling**: Custom `AppError` handler and `catchAsync` function for error handling across routes.
 - **Rate Limiter**: To control the rate of requests to the server.
 - **Express Session**: For managing user sessions.
-- **Redis**: Used for caching.
+- **Redis**: Used for rate limit store, tempory session store and caching store.
+- **@Type-Cacheable**: Decorator for caching data using redis as store.
 - **Zod**: Schema validation library.
 - **Architecture**: Follows the Model -> Repository -> Service -> Controller approach.
-- **Testing**: Unit testing with Jest and integration testing with Mocha.
+- **Testing**: Jest and Supertest.
 
 ### Setup Instructions
 
@@ -43,17 +44,29 @@ This Express server boilerplate is built using the latest version of Node.js and
 3. **Set up environment variables**
    Create a `.env` file in the root directory and add your environment variables:
    ```env
-    NODE_ENV=development
-    SERVER_PORT=8000
-    SERVER_HOSTNAME=localhost
-    DB_PORT=5432
-    DB_NAME=nodejs-sequelized
-    DB_HOST=localhost
-    DB_USERNAME=MrCEO
+    PORT=
+    HOSTNAME=
+
+    DB_PORT=
+    DB_NAME=nodejs-
+    DB_HOST=
+    DB_USERNAME=
     DB_PASSWORD=
-    REDIS_URL=redis://localhost:6379
-    SESSION_SECRET=your_session_secret
-    HASHING_SALT=
+
+    REDIS_HOST=localhost
+    REDIS_PORT=6379
+    REDIS_USER=default
+    REDIS_PASSWORD=
+
+    SESSION_SECRET=
+
+    JWT_SECRET_KEY=
+    JWT_EXPIRES_IN=1h
+
+    COOKIES_SECRET_KEY=
+    COOKIES_MAX_AGE=3600000
+
+    HASHING_SALT=12
    ```
 
 4. **Build the project**
@@ -124,8 +137,9 @@ This Express server boilerplate is built using the latest version of Node.js and
 ```
 ├── src/
 │   ├── configs/
-│   │    ├── env.ts
-│   │    └── logger.ts
+│   │    ├── env.config.ts
+│   │    └── logger.config.ts
+│   │    └── redis.config.ts
 │   ├── controllers/
 │   ├── db
 │   │    ├── migrations/
@@ -150,15 +164,21 @@ This Express server boilerplate is built using the latest version of Node.js and
 │   │    └── loggerHandler.ts
 │   ├── repositories/
 │   ├── services/
+│   ├── test/
+│   │   └── controllers/
+│   │   └── models/
+│   │   └── repositories/
+│   │   └── services/
+│   │   └── test.container.ts/
+│   │   └── test.context.ts/
+│   │   └── test.model.ts/
 │   ├── utils/
 │   │    ├── appError.ts
+│   │    ├── helper.ts
 │   │    └── catchAsync.ts
 │   └── validators/
 │   └── app.ts
 │   └── server.ts
-├── test/
-│   └── unit/
-│   └── integration/
 ├── .env
 ├── .gitignore
 ├── .prettierignore

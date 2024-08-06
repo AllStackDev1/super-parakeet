@@ -1,4 +1,4 @@
-import { isTest } from './env';
+import { isTest } from './env.config';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type LogFunParams = [message?: any, ...optionalParams: any[]];

@@ -4,14 +4,17 @@ export class AppError extends Error {
   constructor(
     public message: string,
     public statusCode: number,
-    public errors?: string[],
+    public errors?: (
+      | string
+      | Record<string, string | number | (string | number)[]>
+    )[],
     public code?: number,
   ) {
     super(message);
     this.code = code;
     this.errors = errors;
     this.statusCode = statusCode;
-    this.status = ('' + statusCode).startsWith('4') ? 'fail' : 'error';
+    this.status = ('' + statusCode).startsWith('4') ? 'failed' : 'error';
     this.IsOperational = true;
 
     Error.captureStackTrace(this, this.constructor);

@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from 'express';
 
-export const catchAsync = (
-  fn: (req: Request, res: Response, next: NextFunction) => void,
-) => {
-  const errorHandler = (req: Request, res: Response, next: NextFunction) => {
-    Promise.resolve(fn(req, res, next)).catch(next);
+type RouteHandler = [req: Request, res: Response, next: NextFunction];
+
+export const catchAsync = (fn: (...rest: RouteHandler) => void) => {
+  const errorHandler = (...rest: RouteHandler) => {
+    Promise.resolve(fn(...rest)).catch(rest[2]);
   };
   return errorHandler;
 };

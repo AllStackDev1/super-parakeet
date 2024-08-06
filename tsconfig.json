@@ -16,6 +16,6 @@
     "types": ["jest", "@types/jest", "reflect-metadata"],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules/", "build/", "src/tests/"]
+  "include": ["src/", "env.d.ts"],
+  "exclude": ["node_modules/", "build/"]
 }

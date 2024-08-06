@@ -1,10 +1,4 @@
-import {
-  Express,
-  Request,
-  Response,
-  NextFunction,
-  RequestHandler,
-} from 'express';
+import { Express, RequestHandler } from 'express';
 
 import { catchAsync } from 'utils';
 import { AuthController, UserController } from 'controllers';
@@ -35,11 +29,7 @@ export function defineRoutes(controllers: IController[], app: Express) {
 
         for (let k = 0; k < routeNames.length; k++) {
           const handlers = routes.get(routeNames[k])?.map((item) => {
-            return catchAsync(
-              (req: Request, res: Response, next: NextFunction) => {
-                return item.call(controller, req, res, next);
-              },
-            );
+            return catchAsync((...rest) => item.call(controller, ...rest));
           });
 
           if (handlers) {

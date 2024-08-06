@@ -22,4 +22,8 @@ export class TestContext {
   private mockClass<T>(implementation: () => Partial<T>): T {
     return jest.fn(implementation)() as T;
   }
+
+  private mockFunc<T>(implementation: () => Partial<T>): T {
+    return jest.fn(implementation)() as T;
+  }
 }

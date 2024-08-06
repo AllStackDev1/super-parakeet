@@ -5,8 +5,12 @@ import {
   InferAttributes,
   CreationOptional,
 } from 'sequelize';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import { decorate, injectable } from 'inversify';
-import sequelize from './connection';
+
+import sequelize from 'configs/sequelize.config';
+import { HASHING_SALT, jwtConfig } from 'configs/env.config';
 
 decorate(injectable(), Model);
 
@@ -27,16 +31,30 @@ export class UserModel extends Model<UserModelDto> {
     } */
 
   getFullname() {
-    return this.firstName + ' ' + this.lastName;
+    return this?.firstName + ' ' + this?.lastName;
   }
 
   getAge() {
-    if (!this.dateOfBirth) {
+    if (!this?.dateOfBirth) {
       return 0;
     }
-    const birthYear = new Date(this.dateOfBirth).getFullYear();
+    const birthYear = new Date(this?.dateOfBirth).getFullYear();
     const currentYear = new Date().getFullYear();
     return currentYear - birthYear;
+  }
+
+  async isPasswordMatch(password: string) {
+    return await bcrypt.compare(password, this.password);
+  }
+
+  generateAuthToken(type: 'auth' | 'reset' | 'verify') {
+    return jwt.sign(
+      { sub: this.id, email: this.email, type },
+      jwtConfig.secretKey,
+      {
+        expiresIn: jwtConfig.expiresIn,
+      },
+    );
   }
 }
 
@@ -62,14 +80,19 @@ UserModel.init(
       unique: true,
     },
     userType: {
+      allowNull: false,
       type: DataTypes.ENUM('0', '1', '2'),
     },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
+      set(value: string) {
+        const salt = bcrypt.genSaltSync(+HASHING_SALT);
+        const hash = bcrypt.hashSync(value, salt + this.email);
+        this.setDataValue('password', hash);
+      },
     },
     dateOfBirth: {
-      allowNull: false,
       type: DataTypes.DATE,
     },
     createdAt: {
@@ -81,11 +104,10 @@ UserModel.init(
       type: DataTypes.DATE,
     },
     deletedAt: {
-      allowNull: false,
       type: DataTypes.DATE,
     },
   },
   { sequelize, paranoid: true, freezeTableName: true, modelName: 'Users' },
 );
 
-export interface UserModelDto extends InferAttributes<UserModel> {}
+export type UserModelDto = InferAttributes<UserModel>;

@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 
 import { AppError } from 'utils';
-import { isProd } from 'configs/env';
-import { INTERNAL_SERVER_ERROR } from 'http-status';
+import { isProd } from 'configs/env.config';
+import { FORBIDDEN, INTERNAL_SERVER_ERROR } from 'http-status';
 
 const sendErrorDev = (err: AppError, res: Response) => {
   const statusCode = err.statusCode || INTERNAL_SERVER_ERROR;
@@ -12,10 +12,10 @@ const sendErrorDev = (err: AppError, res: Response) => {
   const stack = err.stack;
 
   return res.status(statusCode).json({
-    stack,
     status,
-    errors,
     message,
+    errors,
+    stack,
   });
 };
 
@@ -42,24 +42,27 @@ const sendErrorProd = (err: AppError, res: Response) => {
 };
 
 export function globalErrorHandler(
-  err: AppError,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  err: any,
   _req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: NextFunction, // this is needed
 ) {
-  let error: AppError | null = null;
-
-  if (err.code === 5001) {
-    error = new AppError('', 500);
+  if (err.name === 'SequelizeValidationError') {
+    err = new AppError(err.errors[0].message, 400);
   }
 
-  if (err.name === 'JsonWebTokenError') {
+  if (err.name === 'SequelizeUniqueContraintError') {
     err = new AppError('Invalid token', 401);
   }
 
+  if (err.name === 'JsonWebTokenError') {
+    err = new AppError('Token is invalid', FORBIDDEN);
+  }
+
   if (isProd) {
-    return sendErrorProd(error || err, res);
+    return sendErrorProd(err, res);
   }
   sendErrorDev(err, res);
 }

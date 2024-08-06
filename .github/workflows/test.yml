@@ -9,27 +9,44 @@ on:
   pull_request:
     branches: [ "main" ]
 
+env:
+  DB_HOST: ${{ vars.DB_HOST }}
+  DB_PORT: ${{ vars.DB_PORT }}
+  DB_NAME: ${{ vars.DB_NAME }}
+  REDIS_HOST: ${{ vars.REDIS_HOST }}
+  REDIS_PORT: ${{ vars.REDIS_PORT }}
+  REDIS_USER: ${{ vars.REDIS_USER }}
+  DB_USERNAME: ${{ vars.DB_USERNAME }}
+  HASHING_SALT: ${{ vars.HASHING_SALT }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  JWT_EXPIRES_IN: ${{ vars.JWT_EXPIRES_IN }}
+  COOKIES_MAX_AGE: ${{ vars.COOKIES_MAX_AGE }}
+  JWT_SECRET_KEY: ${{ secrets.JWT_SECRET_KEY }}
+  SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+  REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+  COOKIES_SECRET_KEY: ${{ secrets.COOKIES_SECRET_KEY }}
+
 jobs:
-  cache-and-install:
+  cache-run-test:
+    environment: Test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
           version: 8
           run_install: false
-
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
-
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+      - name: Run lint
+        run: pnpm lint
       - name: Run tests
         run: pnpm test
         
