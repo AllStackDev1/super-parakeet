@@ -1,6 +1,6 @@
 # Node.js + Express.js + TypeScript + Sequelize ORM + Redis + PostgreSQL
 
-This is an express server boilerplate which is built using the latest version of Node.js and integrates various modern technologies and practices to ensure a robust, scalable, and maintainable application, which already has out-of-the-box authentication and user creation logic implemented. Below are the key features and setup instructions for this boilerplate.
+An express server boilerplate built using the latest version of Node.js and integrates various modern technologies and practices to ensure a robust, scalable, and maintainable application, with out-of-the-box authentication and user creation logic implemented. Below are the key features and setup instructions for this boilerplate.
 
 ## Features
 - **Express.js**: Web framework for Node.js.
