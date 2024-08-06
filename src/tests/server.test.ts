@@ -18,7 +18,7 @@ describe('Server Start', () => {
   });
 
   afterAll((done) => {
-    app.stop(done);
+    app.shutdown(done);
     done();
   });
 

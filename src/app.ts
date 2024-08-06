@@ -24,6 +24,7 @@ import {
 import { TYPES } from 'di/types';
 
 import { AuthController, UserController } from 'controllers';
+import { RedisClient } from 'configs/redis.config';
 
 @injectable()
 export class App {
@@ -40,6 +41,8 @@ export class App {
     private rateLimitHandler: RateLimitHandler,
     @inject(TYPES.SessionHandler)
     private sessionHandler: SessionHandler,
+    @inject(TYPES.RedisClient)
+    private redisClient: RedisClient,
   ) {}
 
   public async initialize() {
@@ -66,8 +69,9 @@ export class App {
     });
   }
 
-  public stop(callback: (err?: Error) => void) {
+  public shutdown(callback: (err?: Error) => void) {
     sequelize.close();
+    this.redisClient.close();
     this.httpServer?.close(callback);
   }
 
