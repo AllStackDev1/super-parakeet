@@ -1,10 +1,10 @@
-## Express Server Boilerplate
+# Node.js + Express.js + TypeScript + Sequelize ORM + Redis + PostgreSQL
 
-This Express server boilerplate is built using the latest version of Node.js and integrates various modern technologies and practices to ensure a robust, scalable, and maintainable application. Below are the key features and setup instructions for this boilerplate.
+This is an express server boilerplate which is built using the latest version of Node.js and integrates various modern technologies and practices to ensure a robust, scalable, and maintainable application. Below are the key features and setup instructions for this boilerplate.
 
-### Key Features
+## Features
 - **Express.js**: Web framework for Node.js.
-- **Latest Node.js Version**: Utilizes the latest features and improvements of Node.js.
+- **Node.js Version 21.7.1**: Utilizes the latest features and improvements of Node.js.
 - **Node Events**: Integrated with `node:event` for handling custom events.
 - **Inversion of Control**: Implemented using Inversify for better dependency management.
 - **Classes**: Written in TypeScript using classes for better structure and readability.
@@ -21,14 +21,14 @@ This Express server boilerplate is built using the latest version of Node.js and
 - **Architecture**: Follows the Model -> Repository -> Service -> Controller approach.
 - **Testing**: Jest and Supertest.
 
-### Setup Instructions
+## Setup Instructions
 
-#### Prerequisites
+### Prerequisites
 - Node.js (latest version)
 - PostgreSQL
 - Redis
 
-#### Installation
+### Installation
 
 1. **Clone the repository**
    ```bash
@@ -86,7 +86,7 @@ This Express server boilerplate is built using the latest version of Node.js and
    ```
    The server will start at `http://localhost:8000`.
 
-### Scripts
+## Scripts
 
 - **Development**: 
   ```bash
@@ -132,7 +132,7 @@ This Express server boilerplate is built using the latest version of Node.js and
   ```
   Runs ESLint to check for code quality issues.
 
-### Project Structure
+## Project Structure
 
 ```
 ├── src/
@@ -169,9 +169,9 @@ This Express server boilerplate is built using the latest version of Node.js and
 │   │   └── models/
 │   │   └── repositories/
 │   │   └── services/
-│   │   └── test.container.ts/
-│   │   └── test.context.ts/
-│   │   └── test.model.ts/
+│   │   └── test.container.ts
+│   │   └── test.context.ts
+│   │   └── test.model.ts
 │   ├── utils/
 │   │    ├── appError.ts
 │   │    ├── helper.ts
@@ -204,11 +204,12 @@ This Express server boilerplate is built using the latest version of Node.js and
 - **services/**: Contains business logic.
 - **utils/**: Contains utility functions.
 - **validators/**: Contains validation logic using Zod.
+- **tests/**: Contains e2e test cases using jest as a runner.
 - **server.ts**: Entry point of the application.
 - **app.ts**: Main app configuration.
 
-### Contributing
+## Contributing
 Feel free to fork this repository and submit pull requests. For major changes, please open an issue first to discuss what you would like to change.
 
-### License
+## License
 This project is licensed under the MIT License.
