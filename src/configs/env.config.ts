@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { RedisOptions } from 'ioredis';
 import { Options } from 'sequelize';
 
 dotenv.config({ path: `.env.${process.env.NODE_ENV}` });
@@ -22,14 +23,17 @@ export const dbConfig: Options = {
   database: process.env.DB_NAME!,
   username: process.env.DB_USERNAME!,
   password: process.env.DB_PASSWORD!,
-  dialectOptions: {
-    ssl: {
-      rejectUnauthorized: false,
+  ...(isProd && {
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false,
+      },
     },
-  },
+  }),
 };
 
-export const redisConfig = {
+export const redisConfig: RedisOptions = {
   host: process.env.REDIS_HOST!,
   port: +process.env.REDIS_PORT!,
   username: process.env.REDIS_USER!,
@@ -37,15 +41,19 @@ export const redisConfig = {
   showFriendlyErrorStack: true,
   enableOfflineQueue: false,
   maxRetriesPerRequest: null,
-  tls: {
-    rejectUnauthorized: false,
-  },
+  ...(isProd && {
+    tls: {
+      rejectUnauthorized: false,
+    },
+  }),
   db: 0,
 };
 
 export const jwtConfig = {
   secretKey: process.env.JWT_SECRET_KEY!,
-  expiresIn: process.env.JWT_EXPIRES_IN!,
+  defaultExpiresIn: process.env.JWT_DEFAULT_EXPIRES_IN!,
+  accessExpiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN!,
+  refreshExpiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN!,
 };
 
 export const cookiesConfig = {
