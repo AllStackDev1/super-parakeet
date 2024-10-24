@@ -9,7 +9,7 @@ export function corsHandler(req: Request, res: Response, next: NextFunction) {
   res.header('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
-    res.header('Access-Control-Allow-Methods', 'PUT, POST, PATCH, DELETE, GET');
+    res.header('Access-Control-Allow-Methods', 'GET, PUT, POST, PATCH, DELETE');
     return res.status(200).json({});
   }
 

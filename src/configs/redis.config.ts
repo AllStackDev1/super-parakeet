@@ -39,7 +39,7 @@ export class RedisClient {
     });
 
     redisClient.on('reconnecting', () => {
-      logger.info('Redis client is reconnected');
+      logger.info('Redis client is reconnecting');
     });
 
     return redisClient;
