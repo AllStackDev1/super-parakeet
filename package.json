@@ -12,7 +12,8 @@
     "db:migrate:undo": "pnpm run build && NODE_ENV=development npx sequelize-cli db:migrate:undo",
     "test": "NODE_ENV=test TEST_MODEL=real jest --runInBand --detectOpenHandles",
     "test:watch": "NODE_ENV=test TEST_MODEL=real jest --runInBand --watch",
-    "lint": "eslint ./src/**/*"
+    "lint": "eslint ./src/**/*",
+    "docker-up-dev": "NODE_ENV=development ./run-docker.sh"
   },
   "author": "Chinedu",
   "license": "ISC",
