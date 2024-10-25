@@ -36,8 +36,8 @@ dependencies:
     specifier: 8.0.0
     version: 8.0.0
   http-status:
-    specifier: 2.0.0
-    version: 2.0.0
+    specifier: 1.8.1
+    version: 1.8.1
   inversify:
     specifier: ^6.0.2
     version: 6.0.2
@@ -2988,8 +2988,8 @@ packages:
       toidentifier: 1.0.1
     dev: false
 
-  /http-status@2.0.0:
-    resolution: {integrity: sha512-fmtDiMjseYigum9OwVYJD2RD6tRYV4tzRrT92/aLSOS2bNPvz3jx8aHFqJ4Nq4ZLydalwuyh2Q6VuHg7qbCbJQ==}
+  /http-status@1.8.1:
+    resolution: {integrity: sha512-YQF7j8Qf/Rlby0IbRPiWfNZt6aeUv3K0Pi0x3crbMZN+7F8dPn5k4b3n897vpM1Vk8Mg2fhOYc9fktKEQWMy/Q==}
     engines: {node: '>= 0.4.0'}
     dev: false
 
