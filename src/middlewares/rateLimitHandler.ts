@@ -12,7 +12,7 @@ decorate(injectable(), RateLimiterRedis);
 export class RateLimitHandler extends RateLimiterRedis {
   constructor(@inject(TYPES.RedisClient) private redisClient: RedisClient) {
     super({
-      storeClient: redisClient.get({
+      storeClient: redisClient.getClient({
         enableOfflineQueue: false,
       }),
       keyPrefix: 'rate-limit',

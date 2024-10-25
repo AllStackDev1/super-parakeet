@@ -10,11 +10,13 @@ const sendErrorDev = (err: AppError, res: Response) => {
   const message = err.message;
   const errors = err.errors;
   const stack = err.stack;
+  const code = err.code;
 
   return res.status(statusCode).json({
     status,
     message,
     errors,
+    code,
     stack,
   });
 };
@@ -24,12 +26,13 @@ const sendErrorProd = (err: AppError, res: Response) => {
   const IsOperational = err.IsOperational;
   const status = err.status || 'error';
   const message = err.message;
-  // const stack = err.stack;
+  const errors = err.errors;
 
   if (IsOperational) {
     return res.status(statusCode).json({
       status,
       message,
+      errors,
     });
   }
 

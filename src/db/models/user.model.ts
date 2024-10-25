@@ -6,7 +6,7 @@ import {
   CreationOptional,
 } from 'sequelize';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { sign } from 'jsonwebtoken';
 import { decorate, injectable } from 'inversify';
 
 import sequelize from 'configs/sequelize.config';
@@ -47,14 +47,17 @@ export class UserModel extends Model<UserModelDto> {
     return await bcrypt.compare(password, this.password);
   }
 
-  generateAuthToken(type: 'auth' | 'reset' | 'verify') {
-    return jwt.sign(
-      { sub: this.id, email: this.email, type },
-      jwtConfig.secretKey,
-      {
-        expiresIn: jwtConfig.expiresIn,
-      },
-    );
+  generateJWT(type: 'access' | 'refresh' | 'reset' | 'verify') {
+    const { secretKey, accessExpiresIn, refreshExpiresIn, defaultExpiresIn } =
+      jwtConfig;
+    return sign({ sub: this.id, email: this.email, type }, secretKey, {
+      expiresIn:
+        type === 'access'
+          ? accessExpiresIn
+          : type === 'refresh'
+            ? refreshExpiresIn
+            : defaultExpiresIn,
+    });
   }
 }
 

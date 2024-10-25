@@ -9,9 +9,8 @@ import {
   DeleteTypeSchema,
 } from 'validators';
 import { TYPES } from 'di/types';
-import { auth } from 'middlewares';
 import { IUserService } from 'services';
-import { Route, Controller, Validator } from 'decorators';
+import { Route, Controller, Validator, AuthGuard } from 'decorators';
 
 @Controller('/users')
 @injectable()
@@ -21,24 +20,28 @@ export class UserController {
     private service: IUserService,
   ) {}
 
-  @Route('get', '', auth)
+  @Route('get', '/')
+  @AuthGuard()
   async getAll(_: Request, res: Response) {
     return res.status(OK).json(await this.service.getAllUsers());
   }
 
-  @Route('get', '/search', auth)
+  @Route('get', '/search')
+  @AuthGuard()
   @Validator({ query: QuerySchema })
   async query(req: Request<[], [], [], QuerySchema>, res: Response) {
     return res.status(OK).json(await this.service.getUsersByQuery(req.query));
   }
 
-  @Route('get', '/:id', auth)
+  @Route('get', '/:id')
+  @AuthGuard()
   @Validator({ params: ParamsWithId })
   async getById(req: Request<ParamsWithId>, res: Response) {
     return res.status(OK).json(await this.service.getUserById(req.params.id));
   }
 
-  @Route('patch', '/:id', auth)
+  @Route('patch', '/:id')
+  @AuthGuard()
   @Validator({ body: UpdateSchema, params: ParamsWithId })
   async update(req: Request<ParamsWithId, [], UpdateSchema>, res: Response) {
     return res.status(OK).json({
@@ -47,7 +50,8 @@ export class UserController {
     });
   }
 
-  @Route('delete', '/:id', auth)
+  @Route('delete', '/:id')
+  @AuthGuard()
   @Validator({ params: ParamsWithId, body: DeleteTypeSchema })
   async delete(
     req: Request<ParamsWithId, [], DeleteTypeSchema>,

@@ -33,6 +33,12 @@ export const LoginSchema = z.object({
 
 export type LoginSchema = z.infer<typeof LoginSchema>;
 
+export const RefreshTokenSchema = z.object({
+  refreshToken: z.string(),
+});
+
+export type RefreshTokenSchema = z.infer<typeof RefreshTokenSchema>;
+
 export const EmailSchema = z.object({
   email: z.string().email(),
 });

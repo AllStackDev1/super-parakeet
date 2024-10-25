@@ -1,4 +1,4 @@
-import { Container as InversifyContainer } from 'inversify';
+import { interfaces, Container as InversifyContainer } from 'inversify';
 
 import {
   ModelsModule,
@@ -18,8 +18,8 @@ export class Container {
     this.register();
   }
 
-  public getApp() {
-    return this._container.get(App);
+  public get<T>(serviceIdentifier: interfaces.ServiceIdentifier<T>): T {
+    return this._container.get<T>(serviceIdentifier);
   }
 
   private register() {
@@ -31,3 +31,7 @@ export class Container {
     this._container.bind<App>(App).toSelf();
   }
 }
+
+const container = new Container();
+
+export default container;

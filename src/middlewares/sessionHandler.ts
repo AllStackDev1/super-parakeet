@@ -33,7 +33,7 @@ export const sessionHandler = (client: Redis) => {
 export class SessionHandler extends RedisStore {
   constructor(@inject(TYPES.RedisClient) private redisClient: RedisClient) {
     super({
-      client: redisClient.get(),
+      client: redisClient.getClient(),
       prefix: 'myapp:super-parakeet',
     });
 

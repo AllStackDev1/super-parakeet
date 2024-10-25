@@ -7,14 +7,19 @@ import { injectable } from 'inversify';
 export class RedisClient {
   private client?: Redis;
 
-  get(opts?: RedisOptions) {
+  /**
+   *
+   * @param opts RedisOptions
+   * @returns Redis client
+   */
+  getClient(opts?: RedisOptions) {
     this.client = this.client || this.createClient(opts);
 
     return this.client;
   }
 
   close() {
-    this.get().disconnect();
+    this.getClient().disconnect();
   }
 
   private createClient(opts?: RedisOptions) {

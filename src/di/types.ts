@@ -15,6 +15,7 @@ export const TYPES = {
 
   // Thirdparty
   RedisClient: Symbol.for('RedisClient'),
+  AuthHandler: Symbol.for('AuthHandler'),
   SessionHandler: Symbol.for('SessionHandler'),
   RateLimitHandler: Symbol.for('RateLimitHandler'),
 };

@@ -33,7 +33,7 @@ export class UserService extends BaseService implements IUserService {
   ) {
     super();
     useAdapter(
-      redisClient.get({
+      redisClient.getClient({
         enableOfflineQueue: true,
       }),
       false,

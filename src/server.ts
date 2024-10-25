@@ -1,9 +1,9 @@
 import 'reflect-metadata';
-import { Container } from 'di/container';
+import container from 'di/container';
+import { App } from 'app';
 
 (async () => {
-  const container = new Container();
-  const app = container.getApp();
+  const app = container.get(App);
   await app.initialize();
   app.start();
 })();
