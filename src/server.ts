@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import container from 'di/container';
+import { container } from 'di/container';
 import { App } from 'app';
 
 (async () => {

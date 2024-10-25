@@ -29,7 +29,7 @@ const sendErrorProd = (err: AppError, res: Response) => {
   const errors = err.errors;
 
   if (IsOperational) {
-    return res.status(statusCode).json({
+    res.status(statusCode).json({
       status,
       message,
       errors,
@@ -38,7 +38,7 @@ const sendErrorProd = (err: AppError, res: Response) => {
 
   logger.error(err);
 
-  return res.status(INTERNAL_SERVER_ERROR).json({
+  res.status(INTERNAL_SERVER_ERROR).json({
     status: 'error',
     message: 'Something went very wrong',
   });

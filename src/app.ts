@@ -69,9 +69,9 @@ export class App {
     });
   }
 
-  public shutdown(callback: (err?: Error) => void) {
-    sequelize.close();
-    this.redisClient.close();
+  public async shutdown(callback: (err?: Error) => void) {
+    await this.redisClient.close();
+    await sequelize.close();
     this.httpServer?.close(callback);
   }
 
@@ -101,7 +101,7 @@ export class App {
     logger.log('Define Routes & Controllers');
     logger.log('----------------------------------------');
     this._express.get('/health-check', (_, res) => {
-      return res.status(OK).json({ status: 'success', health: '100%' });
+      res.status(OK).json({ status: 'success', health: '100%' });
     });
     defineRoutes([this.authController, this.userController], this._express);
     this._express.use(

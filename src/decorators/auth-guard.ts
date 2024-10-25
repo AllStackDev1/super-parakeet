@@ -1,7 +1,7 @@
 import { INTERNAL_SERVER_ERROR } from 'http-status';
 import { TYPES } from 'di/types';
 import { AppError } from 'utils';
-import container from 'di/container';
+import { container } from 'di/container';
 import { RouteHandler } from 'utils/catchAsync';
 import { AuthHandler } from 'middlewares/authHandler';
 

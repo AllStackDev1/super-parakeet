@@ -18,8 +18,8 @@ export class RedisClient {
     return this.client;
   }
 
-  close() {
-    this.getClient().disconnect();
+  async close() {
+    await this.getClient().quit();
   }
 
   private createClient(opts?: RedisOptions) {
