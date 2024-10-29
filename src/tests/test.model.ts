@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
 const table = new Map();
 const indexedTable = new Map();
 

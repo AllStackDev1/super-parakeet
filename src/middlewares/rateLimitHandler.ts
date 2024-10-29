@@ -4,15 +4,18 @@ import { Request, Response, NextFunction } from 'express';
 import { INTERNAL_SERVER_ERROR, TOO_MANY_REQUESTS } from 'http-status';
 
 import { TYPES } from 'di/types';
-import { RedisClient } from 'configs/redis.config';
+import { RedisService } from 'services';
 
 decorate(injectable(), RateLimiterRedis);
 
 @injectable()
 export class RateLimitHandler extends RateLimiterRedis {
-  constructor(@inject(TYPES.RedisClient) private redisClient: RedisClient) {
+  constructor(
+    @inject(TYPES.RedisService)
+    private redisService: RedisService,
+  ) {
     super({
-      storeClient: redisClient.get({
+      storeClient: redisService.getClient({
         enableOfflineQueue: false,
       }),
       keyPrefix: 'rate-limit',
@@ -37,7 +40,9 @@ export class RateLimitHandler extends RateLimiterRedis {
       } else {
         const secs = Math.round(rejRes.msBeforeNext / 1000) || 1;
         res.set('Retry-After', String(secs));
-        res.status(TOO_MANY_REQUESTS).send('Too Many Requests');
+        res
+          .status(TOO_MANY_REQUESTS)
+          .send({ status: 'error', message: 'Too Many Requests' });
       }
     }
   }

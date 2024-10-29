@@ -1,12 +1,12 @@
 import { Redis } from 'ioredis';
 import session from 'express-session';
 import RedisStore from 'connect-redis';
-
-import { isProd, SESSION_SECRET } from 'configs/env.config';
 import { inject, injectable } from 'inversify';
-import { TYPES } from 'di/types';
-import { RedisClient } from 'configs/redis.config';
 import { NextFunction, Request, Response } from 'express';
+
+import { TYPES } from 'di/types';
+import { RedisService } from 'services';
+import { isProd, SESSION_SECRET } from 'configs/env.config';
 
 export const sessionHandler = (client: Redis) => {
   // Initialize store.
@@ -31,9 +31,9 @@ export const sessionHandler = (client: Redis) => {
 
 @injectable()
 export class SessionHandler extends RedisStore {
-  constructor(@inject(TYPES.RedisClient) private redisClient: RedisClient) {
+  constructor(@inject(TYPES.RedisService) private redisService: RedisService) {
     super({
-      client: redisClient.get(),
+      client: redisService.getClient(),
       prefix: 'myapp:super-parakeet',
     });
 

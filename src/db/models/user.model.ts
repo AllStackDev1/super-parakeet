@@ -1,12 +1,12 @@
 import {
-  UUIDV4,
   Model,
+  UUIDV4,
   DataTypes,
   InferAttributes,
   CreationOptional,
 } from 'sequelize';
 import bcrypt from 'bcrypt';
-import jwt from 'jsonwebtoken';
+import { sign } from 'jsonwebtoken';
 import { decorate, injectable } from 'inversify';
 
 import sequelize from 'configs/sequelize.config';
@@ -20,15 +20,11 @@ export class UserModel extends Model<UserModelDto> {
   declare lastName: string;
   declare password: string;
   declare firstName: string;
-  declare userType: '0' | '1' | '2';
   declare id?: CreationOptional<string>;
   declare createdAt?: CreationOptional<string>;
   declare updatedAt?: CreationOptional<string>;
   declare deletedAt?: CreationOptional<string>;
   declare dateOfBirth?: CreationOptional<Date>;
-  /* static associate(models) {
-      // define association here
-    } */
 
   getFullname() {
     return this?.firstName + ' ' + this?.lastName;
@@ -47,12 +43,19 @@ export class UserModel extends Model<UserModelDto> {
     return await bcrypt.compare(password, this.password);
   }
 
-  generateAuthToken(type: 'auth' | 'reset' | 'verify') {
-    return jwt.sign(
-      { sub: this.id, email: this.email, type },
-      jwtConfig.secretKey,
+  generateJWT(type: 'access' | 'refresh' | 'reset' | 'verify') {
+    const { secretKey, accessExpiresIn, refreshExpiresIn, defaultExpiresIn } =
+      jwtConfig;
+    return sign(
+      { sub: this.id, email: this.email, username: this.getFullname(), type },
+      secretKey,
       {
-        expiresIn: jwtConfig.expiresIn,
+        expiresIn:
+          type === 'access'
+            ? accessExpiresIn
+            : type === 'refresh'
+              ? refreshExpiresIn
+              : defaultExpiresIn,
       },
     );
   }
@@ -79,10 +82,6 @@ UserModel.init(
       allowNull: false,
       unique: true,
     },
-    userType: {
-      allowNull: false,
-      type: DataTypes.ENUM('0', '1', '2'),
-    },
     password: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -107,7 +106,16 @@ UserModel.init(
       type: DataTypes.DATE,
     },
   },
-  { sequelize, paranoid: true, freezeTableName: true, modelName: 'Users' },
+  {
+    sequelize,
+    paranoid: true,
+    freezeTableName: true,
+    modelName: 'Users',
+    defaultScope: {
+      attributes: { exclude: ['password'] },
+    },
+  },
 );
 
 export type UserModelDto = InferAttributes<UserModel>;
+// s

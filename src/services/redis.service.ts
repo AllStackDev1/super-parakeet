@@ -1,20 +1,25 @@
 import Redis, { RedisOptions } from 'ioredis';
 
-import { redisConfig } from './env.config';
 import { injectable } from 'inversify';
+import { redisConfig } from 'configs/env.config';
 
 @injectable()
-export class RedisClient {
+export class RedisService {
   private client?: Redis;
 
-  get(opts?: RedisOptions) {
+  /**
+   *
+   * @param opts RedisOptions
+   * @returns Redis client
+   */
+  getClient(opts?: RedisOptions) {
     this.client = this.client || this.createClient(opts);
 
     return this.client;
   }
 
-  close() {
-    this.get().disconnect();
+  async close() {
+    await this.getClient().quit();
   }
 
   private createClient(opts?: RedisOptions) {
@@ -39,7 +44,7 @@ export class RedisClient {
     });
 
     redisClient.on('reconnecting', () => {
-      logger.info('Redis client is reconnected');
+      logger.info('Redis client is reconnecting');
     });
 
     return redisClient;

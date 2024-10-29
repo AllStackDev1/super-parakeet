@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { AppError } from 'utils';
+import httpStatus from 'http-status';
 import { Request, Response, NextFunction } from 'express';
 import { ZodEffects, ZodError, ZodIssue, ZodObject } from 'zod';
-import httpStatus from 'http-status';
-import { AppError } from 'utils';
 
 type ZodSchema = ZodObject<any> | ZodEffects<ZodObject<any>>;
 

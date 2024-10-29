@@ -1,10 +1,11 @@
-import jwt from 'jsonwebtoken';
+import { inject, injectable } from 'inversify';
 import { UNAUTHORIZED } from 'http-status';
 import { Request, Response, NextFunction } from 'express';
 
 import { UserModel } from 'db/models';
-import { jwtConfig } from 'configs/env.config';
 import { AppError, catchAsync } from 'utils';
+import { TYPES } from 'di/types';
+import { IAuthService, RedisService } from 'services';
 
 declare module 'express-session' {
   interface SessionData {
@@ -19,40 +20,81 @@ declare module 'express' {
   }
 }
 
-async function authenticateToken(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) {
-  let token: string = req.cookies.auth_token;
-
-  if (!token && req.headers.authorization?.startsWith('Bearer')) {
-    token = req.headers.authorization.split(' ')[1];
+@injectable()
+export class AuthHandler {
+  constructor(
+    @inject(TYPES.AuthService)
+    private authService: IAuthService,
+    @inject(TYPES.RedisService) private redisService: RedisService,
+  ) {
+    this.handler = this.handler.bind(this);
   }
 
-  if (!token) {
-    return next(new AppError('Please login to gain access', UNAUTHORIZED));
-  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private async authenticateToken(req: Request, _: Response) {
+    if (req.headers.authorization?.startsWith('Bearer')) {
+      const accessToken = req.headers.authorization.split(' ')[1];
+      if (!accessToken) {
+        throw new AppError('Please login to gain access', UNAUTHORIZED);
+      }
+      // verify access token
+      const { decoded, error } =
+        await this.authService.validateJWT(accessToken);
 
-  const tokenDetails = jwt.verify(token, jwtConfig.secretKey);
+      if (!error) {
+        const storedUser = (await this.redisService
+          .getClient()
+          .get(decoded?.sub as string)) as string;
 
-  const user = await UserModel.findByPk(tokenDetails?.sub as string);
+        if (!storedUser) {
+          throw new AppError(
+            'Access token expired. Please request a new one using your refresh token.',
+            UNAUTHORIZED,
+            null,
+            'TOKEN_EXPIRED',
+          );
+        }
 
-  if (!user) {
-    return next(new AppError('Could not find user', 400));
-  }
-  req.user = user;
-  req.session.user = user;
-  next(); // Continue to the protected route
-}
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { refreshToken: _, ...user } = JSON.parse(storedUser);
 
-export const authHandler = catchAsync(
-  (req: Request, res: Response, next: NextFunction) => {
-    const user = req.session.user;
-    const authorized = req.session.authorized;
-    if (authorized && user) {
-      return next();
+        req.user = user;
+        req.session.user = user;
+        return;
+      }
     }
-    return authenticateToken(req, res, next);
-  },
-);
+
+    // if no access token in header, check for refresh token in cookies
+    // and ask client to request a new access token
+    const refreshToken = req.cookies.refreshToken;
+    if (refreshToken) {
+      const { error } = await this.authService.validateJWT(refreshToken);
+
+      if (!error) {
+        // Instead of creating a new access token here, instruct the client to request one
+        throw new AppError(
+          'Access token expired. Please request a new one using your refresh token.',
+          UNAUTHORIZED,
+          null,
+          'TOKEN_EXPIRED',
+        );
+      }
+    }
+
+    throw new AppError('Please login to gain access', UNAUTHORIZED);
+  }
+
+  public async handler() {
+    return catchAsync(
+      async (req: Request, res: Response, next: NextFunction) => {
+        const user = req.session.user;
+        const authorized = req.session.authorized;
+        if (authorized && user) {
+          return next();
+        }
+        await this.authenticateToken(req, res);
+        next();
+      },
+    );
+  }
+}

@@ -5,6 +5,7 @@ import {
   ModelStatic,
   WhereOptions,
   WhereAttributeHashValue,
+  FindOptions,
 } from 'sequelize';
 import { MakeNullishOptional } from 'sequelize/lib/utils';
 
@@ -22,12 +23,18 @@ export class BaseRepository<K, T extends Model> {
     return await this.model.findAll({ where: query });
   }
 
-  public async getById(id: string) {
-    return await this.model.findByPk(id);
+  public async getById(
+    id: string,
+    options?: Omit<FindOptions<Attributes<T>>, 'where'>,
+  ) {
+    return await this.model.findByPk(id, options);
   }
 
-  public async getOne(query: WhereOptions<Attributes<T>>) {
-    return await this.model.findOne({ where: query });
+  public async getOne(
+    query: WhereOptions<Attributes<T>>,
+    options?: Omit<FindOptions<Attributes<T>>, 'where'>,
+  ) {
+    return await this.model.findOne({ where: query, ...options });
   }
 
   public async updateById(id: string, payload: Partial<K>) {

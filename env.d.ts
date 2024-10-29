@@ -20,7 +20,9 @@ declare global {
       SESSION_SECRET?: string;
 
       JWT_SECRET_KEY?: string;
-      JWT_EXPIRES_IN?: string;
+      JWT_DEFAULT_EXPIRES_IN?: string;
+      JWT_ACCESS_TOKEN_EXPIRES_IN?: string;
+      JWT_REFRESH_TOKEN_EXPIRES_IN?: string;
 
       COOKIES_SECRET_KEY?: string;
       COOKIES_MAX_AGE?: string;

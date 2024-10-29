@@ -6,7 +6,3 @@ coverage
 react-email-starter
 .babelrc
 events/
-
-.dbdata
-.redisdata
-.env

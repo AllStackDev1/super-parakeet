@@ -1,7 +1,7 @@
 import helmet from 'helmet';
-import http from 'node:http';
-import express from 'express';
+import { Server } from 'node:http';
 import cookieParser from 'cookie-parser';
+import express, { Express } from 'express';
 import { NOT_FOUND, OK } from 'http-status';
 import { inject, injectable } from 'inversify';
 
@@ -23,16 +23,20 @@ import {
 
 import { TYPES } from 'di/types';
 
+import { SocketService, RedisService } from 'services';
 import { AuthController, UserController } from 'controllers';
-import { RedisClient } from 'configs/redis.config';
 
 @injectable()
 export class App {
-  public _express = express();
-  private httpServer: ReturnType<typeof http.createServer> | undefined;
   private isInitialized: boolean = false;
 
   constructor(
+    @inject(TYPES.Server)
+    private server: Server,
+    @inject(TYPES.Express)
+    private express: Express,
+    @inject(TYPES.SocketService)
+    private socketService: SocketService,
     @inject(TYPES.AuthController)
     private authController: AuthController,
     @inject(TYPES.UserController)
@@ -41,8 +45,8 @@ export class App {
     private rateLimitHandler: RateLimitHandler,
     @inject(TYPES.SessionHandler)
     private sessionHandler: SessionHandler,
-    @inject(TYPES.RedisClient)
-    private redisClient: RedisClient,
+    @inject(TYPES.RedisService)
+    private redisService: RedisService,
   ) {}
 
   public async initialize() {
@@ -61,50 +65,55 @@ export class App {
     logger.log('----------------------------------------');
     logger.log('Starting Server');
     logger.log('----------------------------------------');
-    this.httpServer = http.createServer(this._express);
-    this.httpServer.listen(serverConfig.port, () => {
+    this.server.listen(serverConfig.port, () => {
       logger.log('----------------------------------------');
       logger.log(`Server started on ${serverConfig.host}:${serverConfig.port}`);
       logger.log('----------------------------------------');
+
+      // Initialize Socket.IO listeners
+      logger.log('----------------------------------------');
+      logger.log('Initialize Socket.IO listeners');
+      logger.log('----------------------------------------');
+      this.socketService.setupListeners();
     });
   }
 
-  public shutdown(callback: (err?: Error) => void) {
-    sequelize.close();
-    this.redisClient.close();
-    this.httpServer?.close(callback);
+  public async shutdown(callback: (err?: Error) => void) {
+    await this.redisService.close();
+    await sequelize.close();
+    this.server?.close(callback);
   }
 
   private setExpressSettings() {
     logger.log('----------------------------------------');
     logger.log('Initializing API');
     logger.log('----------------------------------------');
-    this._express.use(helmet());
-    this._express.use(cookieParser(cookiesConfig.secretKey));
-    this._express.use(express.urlencoded({ extended: true }));
-    this._express.use(express.json());
-    this._express.disable('x-powered-by');
+    this.express.use(helmet());
+    this.express.use(cookieParser(cookiesConfig.secretKey));
+    this.express.use(express.urlencoded({ extended: true }));
+    this.express.use(express.json());
+    this.express.disable('x-powered-by');
   }
 
   private initializePreMiddlewares() {
     logger.log('----------------------------------------');
     logger.log('Configuration Pre Middlewares');
     logger.log('----------------------------------------');
-    this._express.use(corsHandler);
-    this._express.use(this.sessionHandler.handler);
-    this._express.use(this.rateLimitHandler.handler);
-    this._express.use(loggerHandler);
+    this.express.use(corsHandler);
+    this.express.use(this.sessionHandler.handler);
+    this.express.use(this.rateLimitHandler.handler);
+    this.express.use(loggerHandler);
   }
 
   private initializeControllers() {
     logger.log('----------------------------------------');
     logger.log('Define Routes & Controllers');
     logger.log('----------------------------------------');
-    this._express.get('/health-check', (_, res) => {
-      return res.status(OK).json({ status: 'success', health: '100%' });
+    this.express.get('/health-check', (_, res) => {
+      res.status(OK).json({ status: 'success', health: '100%' });
     });
-    defineRoutes([this.authController, this.userController], this._express);
-    this._express.use(
+    defineRoutes([this.authController, this.userController], this.express);
+    this.express.use(
       '*',
       catchAsync(async (req) => {
         throw new AppError(
@@ -130,6 +139,6 @@ export class App {
     logger.log('----------------------------------------');
     logger.log('Configuration Post Middlewares');
     logger.log('----------------------------------------');
-    this._express.use(globalErrorHandler);
+    this.express.use(globalErrorHandler);
   }
 }

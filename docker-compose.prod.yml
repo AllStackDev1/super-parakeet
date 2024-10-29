@@ -1,0 +1,5 @@
+services:
+  backend:
+    command: pnpm start
+    volumes:
+      - /usr/src/app/node_modules

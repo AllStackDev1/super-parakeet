@@ -4,11 +4,10 @@ export class AppError extends Error {
   constructor(
     public message: string,
     public statusCode: number,
-    public errors?: (
-      | string
-      | Record<string, string | number | (string | number)[]>
-    )[],
-    public code?: number,
+    public errors?:
+      | (string | Record<string, string | number | (string | number)[]>)[]
+      | null,
+    public code?: number | string,
   ) {
     super(message);
     this.code = code;
