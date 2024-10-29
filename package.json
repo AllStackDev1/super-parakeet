@@ -5,15 +5,17 @@
   "main": "src/server.ts",
   "scripts": {
     "build": "rimraf build && tsc -p ./tsconfig.build.json",
-    "docker-up-dev": "NODE_ENV=development ./run-docker.sh",
-    "dev": "NODE_ENV=development nodemon -r tsconfig-paths/register ./src/server.ts",
-    "start": "NODE_ENV=development TS_NODE_BASEURL=./build nodemon -r tsconfig-paths/register ./build/server.js",
+    "docker-up-dev": "rimraf .env && NODE_ENV=development ./run-docker.sh",
+    "docker-up-prod": "rimraf .env && NODE_ENV=production ./run-docker.sh",
+    "dev": "NODE_ENV=development nodemon -r tsconfig-paths/register ./src/index.ts",
+    "start": "NODE_ENV=development TS_NODE_BASEURL=./build nodemon -r tsconfig-paths/register ./build/index.js",
     "db:create": "pnpm run build && NODE_ENV=development npx sequelize-cli db:create",
+    "db:seed:all": "pnpm run build && NODE_ENV=development npx sequelize-cli db:seed:all",
     "db:migrate:up": "pnpm run build && NODE_ENV=development npx sequelize-cli db:migrate",
     "db:migrate:undo": "pnpm run build && NODE_ENV=development npx sequelize-cli db:migrate:undo",
     "test": "NODE_ENV=test TEST_MODEL=mock jest src --runInBand --detectOpenHandles",
     "test:watch": "NODE_ENV=test TEST_MODEL=real jest --runInBand --watch",
-    "test-single": "NODE_ENV=test TEST_MODEL=mock jest ./src/tests/server.test.ts --detectOpenHandles",
+    "test-single": "NODE_ENV=test TEST_MODEL=mock jest ./src/tests/app.test.ts --detectOpenHandles",
     "lint": "eslint ./src/**/*"
   },
   "author": "Chinedu",
@@ -40,6 +42,7 @@
     "reflect-metadata": "^0.2.2",
     "safe-regex": "^2.1.1",
     "sequelize": "^6.37.3",
+    "socket.io": "^4.8.1",
     "zod": "^3.23.8"
   },
   "devDependencies": {

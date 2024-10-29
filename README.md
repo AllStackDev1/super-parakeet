@@ -78,6 +78,7 @@ An express server boilerplate built using the latest version of Node.js and inte
    ```bash
    pnpm run db:create
    pnpm run db:migrate:up
+   pnpm run db:seed:all
    ```
 
 6. **Start the development server**

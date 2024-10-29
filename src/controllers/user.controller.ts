@@ -3,9 +3,9 @@ import { injectable, inject } from 'inversify';
 import { ACCEPTED, NO_CONTENT, OK } from 'http-status';
 
 import {
-  QuerySchema,
+  UserQuerySchema,
   ParamsWithId,
-  UpdateSchema,
+  UserUpdateSchema,
   DeleteTypeSchema,
 } from 'validators';
 import { TYPES } from 'di/types';
@@ -28,8 +28,8 @@ export class UserController {
 
   @Route('get', '/search')
   @AuthGuard()
-  @Validator({ query: QuerySchema })
-  async query(req: Request<[], [], [], QuerySchema>, res: Response) {
+  @Validator({ query: UserQuerySchema })
+  async query(req: Request<[], [], [], UserQuerySchema>, res: Response) {
     return res.status(OK).json(await this.service.getUsersByQuery(req.query));
   }
 
@@ -42,8 +42,14 @@ export class UserController {
 
   @Route('patch', '/:id')
   @AuthGuard()
-  @Validator({ body: UpdateSchema, params: ParamsWithId })
-  async update(req: Request<ParamsWithId, [], UpdateSchema>, res: Response) {
+  @Validator({
+    body: UserUpdateSchema,
+    params: ParamsWithId,
+  })
+  async update(
+    req: Request<ParamsWithId, [], UserUpdateSchema>,
+    res: Response,
+  ) {
     return res.status(OK).json({
       message: 'User details updated successfully',
       data: await this.service.update(req.params.id, req.body),

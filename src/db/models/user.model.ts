@@ -1,6 +1,6 @@
 import {
-  UUIDV4,
   Model,
+  UUIDV4,
   DataTypes,
   InferAttributes,
   CreationOptional,
@@ -20,15 +20,11 @@ export class UserModel extends Model<UserModelDto> {
   declare lastName: string;
   declare password: string;
   declare firstName: string;
-  declare userType: '0' | '1' | '2';
   declare id?: CreationOptional<string>;
   declare createdAt?: CreationOptional<string>;
   declare updatedAt?: CreationOptional<string>;
   declare deletedAt?: CreationOptional<string>;
   declare dateOfBirth?: CreationOptional<Date>;
-  /* static associate(models) {
-      // define association here
-    } */
 
   getFullname() {
     return this?.firstName + ' ' + this?.lastName;
@@ -50,14 +46,18 @@ export class UserModel extends Model<UserModelDto> {
   generateJWT(type: 'access' | 'refresh' | 'reset' | 'verify') {
     const { secretKey, accessExpiresIn, refreshExpiresIn, defaultExpiresIn } =
       jwtConfig;
-    return sign({ sub: this.id, email: this.email, type }, secretKey, {
-      expiresIn:
-        type === 'access'
-          ? accessExpiresIn
-          : type === 'refresh'
-            ? refreshExpiresIn
-            : defaultExpiresIn,
-    });
+    return sign(
+      { sub: this.id, email: this.email, username: this.getFullname(), type },
+      secretKey,
+      {
+        expiresIn:
+          type === 'access'
+            ? accessExpiresIn
+            : type === 'refresh'
+              ? refreshExpiresIn
+              : defaultExpiresIn,
+      },
+    );
   }
 }
 
@@ -81,10 +81,6 @@ UserModel.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-    },
-    userType: {
-      allowNull: false,
-      type: DataTypes.ENUM('0', '1', '2'),
     },
     password: {
       type: DataTypes.STRING,
@@ -110,7 +106,16 @@ UserModel.init(
       type: DataTypes.DATE,
     },
   },
-  { sequelize, paranoid: true, freezeTableName: true, modelName: 'Users' },
+  {
+    sequelize,
+    paranoid: true,
+    freezeTableName: true,
+    modelName: 'Users',
+    defaultScope: {
+      attributes: { exclude: ['password'] },
+    },
+  },
 );
 
 export type UserModelDto = InferAttributes<UserModel>;
+// s

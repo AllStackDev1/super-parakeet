@@ -8,7 +8,6 @@ import { TEST_MODEL } from 'configs/env.config';
 describe('User Model Test', () => {
   let userModelMock: typeof UserModel;
   const user = {
-    userType: '1',
     lastName: 'Doe',
     password: 'ABC',
     firstName: 'John',

@@ -1,8 +1,9 @@
 import { interfaces, Container as InversifyContainer } from 'inversify';
 import {
+  ServerModule,
   ModelsModule,
   ServicesModule,
-  ThirdpartyModule,
+  MiddlewareModule,
   ControllersModule,
   RepositoriesModule,
 } from './modules';
@@ -43,7 +44,8 @@ class ContainerManager {
   private initialize() {
     if (this.initialized) return;
 
-    this._container.load(ThirdpartyModule);
+    this._container.load(ServerModule);
+    this._container.load(MiddlewareModule);
     this._container.load(ModelsModule);
     this._container.load(RepositoriesModule);
     this._container.load(ServicesModule);
@@ -57,14 +59,6 @@ class ContainerManager {
     serviceIdentifier: interfaces.ServiceIdentifier<T>,
   ): interfaces.BindingToSyntax<T> {
     return this._container.bind<T>(serviceIdentifier);
-  }
-
-  // For testing purposes
-  public reset() {
-    this._container = new InversifyContainer({
-      defaultScope: 'Singleton',
-    });
-    this.initialized = false;
   }
 }
 

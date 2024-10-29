@@ -51,7 +51,7 @@ export class AuthController {
         secure: isProd,
       })
       .status(OK)
-      .json({ ...result.user, accessToken: result.accessToken });
+      .json({ user: result.user, accessToken: result.accessToken });
   }
 
   @Route('post', '/login')

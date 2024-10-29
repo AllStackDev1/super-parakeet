@@ -3,10 +3,9 @@ import z from 'zod';
 import { isEmpty } from 'utils/helper';
 
 export const SignupSchema = z.object({
-  lastName: z.string(),
-  firstName: z.string(),
+  lastName: z.string().min(1),
+  firstName: z.string().min(1),
   email: z.string().email(),
-  userType: z.enum(['0', '1', '2']),
   password: z
     .string()
     .min(6)
@@ -59,20 +58,18 @@ export const ResetPasswordSchema = z.object({
 
 export type ResetPasswordSchema = z.infer<typeof ResetPasswordSchema>;
 
-export const QuerySchema = z.object({
+export const UserQuerySchema = z.object({
   lastName: z.string().optional(),
   firstName: z.string().optional(),
   email: z.string().email().optional(),
-  userType: z.enum(['0', '1', '2']).optional(),
 });
 
-export type QuerySchema = z.infer<typeof QuerySchema>;
+export type UserQuerySchema = z.infer<typeof UserQuerySchema>;
 
-export const UpdateSchema = z
+export const UserUpdateSchema = z
   .object({
     lastName: z.string().optional(),
     firstName: z.string().optional(),
-    // userType: z.enum(['0', '1', '2']).optional(),
     dateOfBirth: z.date().optional(),
   })
   .partial()
@@ -81,4 +78,4 @@ export const UpdateSchema = z
     path: ['firstName', 'lastName', 'dateOfBirth'],
   });
 
-export type UpdateSchema = z.infer<typeof UpdateSchema>;
+export type UserUpdateSchema = z.infer<typeof UserUpdateSchema>;

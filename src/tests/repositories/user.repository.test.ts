@@ -10,7 +10,6 @@ describe.only('User Repository Test', () => {
   let userModelMock: typeof UserModel;
   let userRepositoryMock: UserRepository;
   const user = {
-    userType: '1',
     lastName: 'Doe',
     password: 'ABC',
     firstName: 'John',

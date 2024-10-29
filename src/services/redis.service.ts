@@ -1,10 +1,10 @@
 import Redis, { RedisOptions } from 'ioredis';
 
-import { redisConfig } from './env.config';
 import { injectable } from 'inversify';
+import { redisConfig } from 'configs/env.config';
 
 @injectable()
-export class RedisClient {
+export class RedisService {
   private client?: Redis;
 
   /**

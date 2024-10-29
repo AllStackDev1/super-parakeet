@@ -29,7 +29,9 @@ export function defineRoutes(controllers: IController[], app: Express) {
 
         for (let k = 0; k < routeNames.length; k++) {
           const handlers = routes.get(routeNames[k])?.map((item) => {
-            return catchAsync((...rest) => item.call(controller, ...rest));
+            return catchAsync(
+              async (...rest) => await item.call(controller, ...rest),
+            );
           });
 
           if (handlers) {

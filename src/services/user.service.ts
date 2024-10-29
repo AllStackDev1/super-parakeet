@@ -5,20 +5,20 @@ import { useAdapter } from '@type-cacheable/ioredis-adapter';
 import { Cacheable, CacheClear, CacheUpdate } from '@type-cacheable/core';
 
 import { TYPES } from 'di/types';
-import { UserModel, UserModelDto } from 'db/models';
 import { AppError, exclude } from 'utils';
 import { BaseService } from './base.service';
 import { UserRepository } from 'repositories';
-import { RedisClient } from 'configs/redis.config';
-import { type UpdateSchema, type QuerySchema } from 'validators';
+import { RedisService } from './redis.service';
+import { UserModel, UserModelDto } from 'db/models';
+import type { UserUpdateSchema, UserQuerySchema } from 'validators';
 
 export interface IUserService {
   getAllUsers(): Promise<{ data: UserModelDto[]; message: string }>;
   getUserById(id: string): Promise<UserModelDto | null>;
   getUsersByQuery(
-    query: QuerySchema,
+    query: UserQuerySchema,
   ): Promise<{ data: UserModelDto[]; message: string }>;
-  update(id: string, payload: UpdateSchema): Promise<UserModelDto | null>;
+  update(id: string, payload: UserUpdateSchema): Promise<UserModelDto | null>;
   softDeleteById(id: string): Promise<number>;
   forceDeleteById(id: string): Promise<number>;
 }
@@ -28,12 +28,12 @@ export class UserService extends BaseService implements IUserService {
   constructor(
     @inject(TYPES.UserRepository)
     protected repo: UserRepository,
-    @inject(TYPES.RedisClient)
-    redisClient: RedisClient,
+    @inject(TYPES.RedisService)
+    redisService: RedisService,
   ) {
     super();
     useAdapter(
-      redisClient.getClient({
+      redisService.getClient({
         enableOfflineQueue: true,
       }),
       false,
@@ -65,7 +65,7 @@ export class UserService extends BaseService implements IUserService {
   @Cacheable({
     cacheKey: (args) => qs.stringify(args[0]),
   })
-  public async getUsersByQuery(query: QuerySchema) {
+  public async getUsersByQuery(query: UserQuerySchema) {
     const users = await this.repo.getAll(query);
     // run some formating and all need data manipulation
     return {
@@ -86,7 +86,7 @@ export class UserService extends BaseService implements IUserService {
     cacheKey: (args, ctx, result) => result.id,
     cacheKeysToClear: () => ['users'],
   })
-  public async update(id: string, payload: UpdateSchema) {
+  public async update(id: string, payload: UserUpdateSchema) {
     const [updatedRows] = await this.repo.updateById(id, payload);
 
     if (updatedRows) {

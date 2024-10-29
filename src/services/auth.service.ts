@@ -1,11 +1,13 @@
 import {
   CONFLICT,
+  FORBIDDEN,
   BAD_REQUEST,
+  UNAUTHORIZED,
   UNPROCESSABLE_ENTITY,
   INTERNAL_SERVER_ERROR,
-  FORBIDDEN,
-  UNAUTHORIZED,
 } from 'http-status';
+import { Redis } from 'ioredis';
+import { Response } from 'express';
 import { verify, decode, JwtPayload } from 'jsonwebtoken';
 import { injectable, inject } from 'inversify';
 import { CacheUpdate } from '@type-cacheable/core';
@@ -16,7 +18,6 @@ import { UserModelDto } from 'db/models';
 import { AppError, exclude } from 'utils';
 import { BaseService } from './base.service';
 import { UserRepository } from 'repositories';
-import { RedisClient } from 'configs/redis.config';
 import { cookiesConfig, jwtConfig } from 'configs/env.config';
 import type {
   EmailSchema,
@@ -25,8 +26,8 @@ import type {
   ResetPasswordSchema,
   RefreshTokenSchema,
 } from 'validators';
-import { Redis } from 'ioredis';
-import { Response } from 'express';
+
+import { RedisService } from './redis.service';
 
 const REDIS_BUFFER = 3 * 60;
 
@@ -58,12 +59,12 @@ export class AuthService extends BaseService implements IAuthService {
   constructor(
     @inject(TYPES.UserRepository)
     private repo: UserRepository,
-    @inject(TYPES.RedisClient)
-    private redisClient: RedisClient,
+    @inject(TYPES.RedisService)
+    private redisService: RedisService,
   ) {
     super();
 
-    this._redisClient = this.redisClient.getClient({
+    this._redisClient = this.redisService.getClient({
       enableOfflineQueue: true,
     });
 
@@ -74,11 +75,13 @@ export class AuthService extends BaseService implements IAuthService {
     this.on('user_failed_login', async () => {});
   }
 
-  public async validateJWT(token: string) {
+  public async validateJWT(token?: string) {
     let response: {
       decoded: JwtPayload | null;
       error?: unknown;
-    } = { decoded: null };
+    } = { decoded: null, error: new Error('No token provided') };
+
+    if (!token) return response;
 
     try {
       const decoded = verify(token, jwtConfig.secretKey) as JwtPayload;
@@ -120,7 +123,12 @@ export class AuthService extends BaseService implements IAuthService {
   }
 
   public async authenticate(dto: LoginSchema) {
-    const user = await this.repo.getOne({ email: dto.email });
+    const user = await this.repo.getOne(
+      { email: dto.email },
+      {
+        attributes: { include: ['password'] },
+      },
+    );
     if (user && (await user.isPasswordMatch(dto.password))) {
       const accessToken = user.generateJWT('access');
       const refreshToken = user.generateJWT('refresh');

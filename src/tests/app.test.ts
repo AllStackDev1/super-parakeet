@@ -1,29 +1,30 @@
 import 'reflect-metadata';
 
-import EventEmitter from 'node:events';
 import request from 'supertest';
 import { Express } from 'express';
+import EventEmitter from 'node:events';
 import { NOT_FOUND, OK } from 'http-status';
 
 import { container } from 'di/container';
 
 import { App } from 'app';
+import { TYPES } from 'di/types';
 
 // Fix EventEmitter inheritance issue for tests
 Object.getPrototypeOf(EventEmitter.prototype).constructor = Object;
 
-describe('Server Start', () => {
+describe('Testing App', () => {
   let app: App;
   let express: Express;
 
   beforeAll(async () => {
     app = container.get(App);
     await app.initialize();
-    express = app._express;
+    express = container.get(TYPES.Express);
   });
 
   afterAll(async () => {
-    await app?.shutdown(container.reset);
+    await app?.shutdown(() => {});
   });
 
   it('Starts and has the proper test environment', async () => {

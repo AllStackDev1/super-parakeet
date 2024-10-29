@@ -5,8 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 import { UserModel } from 'db/models';
 import { AppError, catchAsync } from 'utils';
 import { TYPES } from 'di/types';
-import { RedisClient } from 'configs/redis.config';
-import { IAuthService } from 'services';
+import { IAuthService, RedisService } from 'services';
 
 declare module 'express-session' {
   interface SessionData {
@@ -26,7 +25,7 @@ export class AuthHandler {
   constructor(
     @inject(TYPES.AuthService)
     private authService: IAuthService,
-    @inject(TYPES.RedisClient) private redisClient: RedisClient,
+    @inject(TYPES.RedisService) private redisService: RedisService,
   ) {
     this.handler = this.handler.bind(this);
   }
@@ -43,7 +42,7 @@ export class AuthHandler {
         await this.authService.validateJWT(accessToken);
 
       if (!error) {
-        const storedUser = (await this.redisClient
+        const storedUser = (await this.redisService
           .getClient()
           .get(decoded?.sub as string)) as string;
 
